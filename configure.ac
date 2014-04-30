@@ -1,0 +1,13 @@
+AC_INIT([edudist], [0.1], [roel@roelserve.com])
+AM_INIT_AUTOMAKE
+AM_SILENT_RULES([yes])
+AC_CONFIG_SRCDIR([src/main.c])
+AC_PROG_CC
+AM_PROG_CC_C_O
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdio.h])
+
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT
