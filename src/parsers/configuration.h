@@ -21,10 +21,30 @@
 #define PARSERS_CONFIGURATION_H
 
 #include "../datatypes/configuration.h"
-/** 
+#include <stddef.h>
+
+/**
  * This function reads a file and tries to parse configuration items from it.
- * Returns 0 when everything went fine, -1 when something fails.
+ * Returns 0 when everything went fine, -1 when something failed.
  */
 int p_configuration_from_file (dt_configuration* config, const char* path);
+
+/**
+ * This function tries to parse configuration from a string. When 
+ * 'repository' is not NULL, any "Repository" fields will be ignored and
+ * all packages will be added to the provided repository. This is mainly
+ * a safety measurement to prevent cross-repository infection.
+ * Returns 0 when everything went fine, -1 when something failed.
+ */
+int p_configuration_from_data (dt_configuration* config, const char* data, 
+			       size_t data_len, const char* repository);
+
+/**
+ * This function writes a configuration to a file so that it can be parsed 
+ * with 'p_configuration_from_file' later on.
+ *
+ * Returns 0 when everything went fine, -1 when something failed.
+ */
+int p_configuration_to_file (dt_configuration* config, const char* path);
 
 #endif//PARSERS_CONFIGURATION_H

@@ -18,11 +18,17 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
+#include <curl/curl.h>
 
 #include "parsers/configuration.h"
+#include "parsers/uri.h"
 #include "datatypes/configuration.h"
 #include "datatypes/map.h"
+#include "datatypes/http_response.h"
+#include "network/http.h"
 
 /* This global variable provides access to user-specific configuration data. */
 dt_configuration config;
@@ -98,27 +104,72 @@ main (int argc, char** argv)
 
       switch (arg)
 	{
+	  /* OPTION: add-repo
+	   *   This option provides a way to add a new repository to the local
+	   *   distribution.
+	   */
 	case 'a':
+	  if (optarg)
+	    {
+	      dt_http_response* response = calloc (1, sizeof (dt_http_response));
+	      if (p_uri (optarg, &response->host, &response->location, 
+			 &response->protocol, &response->port))
+		{
+		  curl_global_init (CURL_GLOBAL_ALL);
+		  response = net_http_get (response->protocol, response->host,
+					   response->location, response->port,
+					   response);
+
+		  curl_global_cleanup();
+		  p_configuration_from_data (&config, response->body, 
+					     response->body_len, response->host);
+		  config.num_repositories++;
+		}
+
+	      dt_http_response_free (response);
+	    }
 	  break;
+
+	  /* OPTION: config
+	   *   This option provides a way to use a different configuration file
+	   *   than the default. 
+	   */
 	case 'c':
 	  if (optarg)
 	    if (p_configuration_from_file (&config, optarg) != -1)
 	      printf ("Parsing went fine.\r\n");
 	  break;
+
+	  /* OPTION: remove-repo
+	   *   This option provides a way to remove a repository from the local
+	   *   distribution.
+	   */
 	case 'r':
+	  if (optarg)
+	    dt_map_remove (config.repositories, optarg, dt_map_free);
 	  break;
+
+	  /* OPTION: get
+	   *   This option provides a way to get a package from a repository so
+	   *   it can be used.
+	   */
 	case 'g':
 	  break;
+
 	case 'f':
 	  break;
+
 	case 'h':
 	  show_help ();
 	  break;
+
 	case 'v':
 	  show_version ();
 	  break;
 	}
     }
+
+  p_configuration_to_file (&config, "test.conf");
 
   dt_map* repos = config.repositories;
   while (repos != NULL)
@@ -127,18 +178,17 @@ main (int argc, char** argv)
 
       dt_map* pkgs = repos->data;
       while (pkgs != NULL)
-	{
-	  printf ("  has package '%s'\r\n", (char*)pkgs->key);
-	  pkgs = pkgs->next;
-	}
+	  printf ("  has package '%s'\r\n", (char*)pkgs->key),
+	    pkgs = pkgs->next;
 
-      dt_map_free (repos->data), repos->data = NULL;
       repos = repos->next;
     }
 
   printf ("\r\n");
+  printf ("Number of repositories: %d\r\n", config.num_repositories);
+  printf ("Number of packages: %d\r\n", config.num_packages);
 
-  dt_map_free (config.repositories), config.repositories = NULL;
+  dt_map_free (config.repositories, dt_map_free), config.repositories = NULL;
 
   return 0;
 }

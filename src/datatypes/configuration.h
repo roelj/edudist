@@ -24,6 +24,8 @@
 
 typedef struct
 {
+  int num_repositories;
+  int num_packages;
   dt_map* repositories;
 } dt_configuration;
 

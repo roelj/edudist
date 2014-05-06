@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 
+
 /*----------------------------------------------------------------------------.
  | DT_MAP_ADD                                                                 |
  | This function leans heavily upon having enough memory available. It uses   |
@@ -56,16 +57,69 @@ dt_map_add (dt_map* map, void* key, size_t key_len, void* data)
   return map_item;
 }
 
+
+/*----------------------------------------------------------------------------.
+ | DT_MAP_REMOVE                                                              |
+ '----------------------------------------------------------------------------*/
+dt_map*
+dt_map_remove (dt_map* map, void* key, void* callback)
+{
+  dt_map* tmp = map;
+  while (tmp != NULL)
+    {
+      if (!strcmp ((char *)tmp->key, (char *)key))
+	{
+	  /* Free the memory for the key. */
+	  free (tmp->key), tmp->key = NULL;
+
+	  /* Handle the callback function. */
+	  if (callback)
+	    {
+	      if (callback == dt_map_free)
+		dt_map_free (tmp->data, NULL);
+	      else
+		{
+		  void (*return_call) (void*) = callback;
+		  return_call (tmp->data);
+		}
+	    }
+
+	  /* Point the element to the next and free it. */
+	  dt_map* item = tmp;
+	  tmp = tmp->next;
+	  free (item);
+
+	  /* Stop looking for another key. */
+	  break;
+	}
+    }
+
+  return map;
+}
+
+
 /*----------------------------------------------------------------------------.
  | DT_MAP_FREE                                                                |
  | Make sure to set 'map' to NULL after using this function.                  |
  '----------------------------------------------------------------------------*/
 void
-dt_map_free (dt_map* map)
+dt_map_free (dt_map* map, void* callback)
 {
   while (map != NULL)
     {
       free (map->key);
+
+      if (callback)
+	{
+	  /* 'dt_map_free' is allowed too. */
+	  if (callback == dt_map_free)
+	    dt_map_free (map->data, NULL);
+	  else
+	    {
+	      void (*return_call) (void*) = callback;
+	      return_call (map->data);
+	    }
+	}
 
       dt_map* item = map;
       map = map->next;
