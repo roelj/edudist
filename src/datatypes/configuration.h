@@ -22,11 +22,23 @@
 
 #include "map.h"
 
+/**
+ * @file   datatypes/configuration.h
+ * @brief  A struct for program-wide configuration variables.
+ * @author Roel Janssen
+ */
+
+/**
+ * This struct contains variables that should be accessible by all parts
+ * of the program.
+ */
 typedef struct
 {
-  int num_repositories;
-  int num_packages;
-  dt_map* repositories;
+  int num_repositories; /**< This variable contains the number of repositories
+			     that are active. */
+  int num_packages; /**< This variable contains the number of packages that are
+		         active. */
+  dt_map* repositories; /**< A pointer to a dt_map that contains the repositories. */
 } dt_configuration;
 
 #endif//DATATYPES_CONFIGURATION_H

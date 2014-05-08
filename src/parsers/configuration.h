@@ -24,6 +24,12 @@
 #include <stddef.h>
 
 /**
+ * @file   parsers/configuration.h
+ * @brief  A set of parser functions to read and write configuration data.
+ * @author Roel Janssen
+ */
+
+/**
  * This function reads a file and tries to parse configuration items from it.
  * Returns 0 when everything went fine, -1 when something failed.
  */

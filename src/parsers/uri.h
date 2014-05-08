@@ -23,6 +23,12 @@
 #include "../datatypes/http_response.h"
 
 /**
+ * @file   parsers/uri.h
+ * @brief  A parser to extract parts of a URI.
+ * @author Roel Janssen
+ */
+
+/**
  * This function extracts the parts in a URI.
  * When everything goes fine, it returns 1, otherwise it returns 0.
  */

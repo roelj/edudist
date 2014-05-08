@@ -29,6 +29,7 @@
 #include "datatypes/map.h"
 #include "datatypes/http_response.h"
 #include "network/http.h"
+#include "high/command.h"
 
 /* This global variable provides access to user-specific configuration data. */
 dt_configuration config;
@@ -41,13 +42,13 @@ static void
 show_help ()
 {
   printf ("\r\nAvailable options:\r\n"
-	  "  --add-repo,          -a  Add a repository.\r\n"
-	  "  --remove-repo,       -r  Remove a repository.\r\n"
-	  "  --get,               -g  Get a package (see --from).\r\n"
-	  "  --from,              -f  Set a filter for a single repository.\r\n"
-	  "  --config,            -c  Read a configuration file.\r\n"
-	  "  --version,           -v  Show versioning information.\r\n"
-	  "  --help,              -h  Show this message.\r\n\r\n");
+	  "  --add-repo,        -a  Add a repository.\r\n"
+	  "  --remove-repo,     -r  Remove a repository.\r\n"
+	  "  --get,             -g  Get a package (see --from).\r\n"
+	  "  --from,            -f  Set a filter for a single repository.\r\n"
+	  "  --config,          -c  Read a configuration file.\r\n"
+	  "  --version,         -v  Show versioning information.\r\n"
+	  "  --help,            -h  Show this message.\r\n\r\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -79,6 +80,7 @@ main (int argc, char** argv)
   /* These variables are used to keep track of which argument we're at. */
   int arg = 0;
   int index = 0;
+  char* get_from = NULL;
 
   /*----------------------------------------------------------------------.
    | OPTIONS                                                              |
@@ -111,22 +113,9 @@ main (int argc, char** argv)
 	case 'a':
 	  if (optarg)
 	    {
-	      dt_http_response* response = calloc (1, sizeof (dt_http_response));
-	      if (p_uri (optarg, &response->host, &response->location, 
-			 &response->protocol, &response->port))
-		{
-		  curl_global_init (CURL_GLOBAL_ALL);
-		  response = net_http_get (response->protocol, response->host,
-					   response->location, response->port,
-					   response);
-
-		  curl_global_cleanup();
-		  p_configuration_from_data (&config, response->body, 
-					     response->body_len, response->host);
-		  config.num_repositories++;
-		}
-
-	      dt_http_response_free (response);
+	      curl_global_init (CURL_GLOBAL_ALL);
+	      h_command_add_repo (optarg);
+	      curl_global_cleanup();
 	    }
 	  break;
 
@@ -136,8 +125,7 @@ main (int argc, char** argv)
 	   */
 	case 'c':
 	  if (optarg)
-	    if (p_configuration_from_file (&config, optarg) != -1)
-	      printf ("Parsing went fine.\r\n");
+	    p_configuration_from_file (&config, optarg);
 	  break;
 
 	  /* OPTION: remove-repo
@@ -154,15 +142,39 @@ main (int argc, char** argv)
 	   *   it can be used.
 	   */
 	case 'g':
+	  if (optarg)
+	    {
+	      if (!get_from)
+		get_from = optarg;
+	      else
+		h_command_get_from (optarg, get_from);
+	    }
 	  break;
 
+	  /* OPTION: get
+	   *   This option provides a way to get a package from a repository so
+	   *   it can be used.
+	   */
 	case 'f':
+	  if (optarg)
+	    {
+	      if (!get_from)
+		get_from = optarg;
+	      else
+		h_command_get_from (get_from, optarg);
+	    }
 	  break;
 
+	  /* OPTION: help
+	   * This option displays the help message.
+	   */
 	case 'h':
 	  show_help ();
 	  break;
 
+	  /* OPTION: version
+	   * This option displays the program's version.
+	   */
 	case 'v':
 	  show_version ();
 	  break;

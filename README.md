@@ -21,6 +21,7 @@ tools installed:
 * GCC or CLANG
 * Autotools
 * Make
+* cURL development library
 
 Build instructions
 ------------------

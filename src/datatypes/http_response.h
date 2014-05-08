@@ -23,29 +23,41 @@
 #include <stddef.h>
 
 /**
+ * @file   datatypes/http_response.h
+ * @brief  A struct to capture a HTTP response.
+ * @author Roel Janssen
+ */
+
+/**
  * This structure can be used to store the data from a HTTP response.
  */
 typedef struct
 {
   /* Basic information about the request. */
-  char* host;
-  char* location;
-  int port;
-  int status;
-  char* protocol;
+  char* host; /**< The host used. */
+  char* location; /**< The location used. */
+  int port; /**< The port the web server was active at. */
+  char* protocol; /**< The protocol used. */
 
   /* Variables to store the HTTP header. */
-  char* header;
-  size_t header_len;
+  char* header; /**< A variable to store the HTTP header in. */
+  size_t header_len; /**< The length of the header variable. */
 
   /* Variables to store the HTTP body. */
-  char* body;
-  size_t body_len;
+  char* body; /**< A variable to store the HTTP body in. */
+  size_t body_len; /**< The length of the body variable. */
 
 } dt_http_response;
 
 /**
  * This function makes it easier to initialize a 'dt_http_response'.
+ *
+ * @param[in] protocol The protocol for the connection.
+ * @param[in] host     The hostname for the connection.
+ * @param[in] location The location for the connection.
+ * @param[in] port     The port for the connection.
+ *
+ * @return A @see dt_http_response struct containing the information provided.
  */
 dt_http_response* dt_http_response_init (const char* protocol, const char* host,
 					 const char* location, int port);
@@ -53,6 +65,8 @@ dt_http_response* dt_http_response_init (const char* protocol, const char* host,
 /**
  * This function makes it easier to clean up a 'dt_http_response'.
  * Don't forget to set 'response' to NULL after using this function.
+ *
+ * @param[in] response A @see dt_http_response to clean up.
  */
 void dt_http_response_free (dt_http_response* response);
 
