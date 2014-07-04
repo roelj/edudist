@@ -28,12 +28,12 @@
  | P_CONFIGURATION_CUT_NEWLINE                                                |
  | This function is only available locally.                                   |
  '----------------------------------------------------------------------------*/
-static inline void 
+static void 
 p_configuration_cut_newline (char* line)
 {
   char* newline = strchr (line, '\r');
   if (newline == NULL) newline = strchr (line, '\n');
-  if (newline != NULL) line[newline - line] = '\0';
+  else line[newline - line] = '\0';
 }
 
 /*----------------------------------------------------------------------------.
