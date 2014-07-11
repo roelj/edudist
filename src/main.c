@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
 #include <curl/curl.h>
 
 #include "parsers/configuration.h"
@@ -41,14 +40,12 @@ dt_configuration config;
 static void
 show_help ()
 {
-  printf ("\r\nAvailable options:\r\n"
-	  "  --add-repo,        -a  Add a repository.\r\n"
-	  "  --remove-repo,     -r  Remove a repository.\r\n"
-	  "  --get,             -g  Get a package (see --from).\r\n"
-	  "  --from,            -f  Set a filter for a single repository.\r\n"
-	  "  --config,          -c  Read a configuration file.\r\n"
-	  "  --version,         -v  Show versioning information.\r\n"
-	  "  --help,            -h  Show this message.\r\n\r\n");
+  puts ("\nThe most commonly used commands are:\n"
+	"    add       Add a repository.\n"
+	"    create    Create a new package.\n"
+	"    get       Retrieve a package.\n"
+	"    version   Show versioning information.\n"
+	"    help      Show this message.\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -58,7 +55,7 @@ show_help ()
 static void
 show_version ()
 {
-  printf ("Version 0.1\r\n");
+  puts ("Version 0.1\r\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -77,109 +74,60 @@ main (int argc, char** argv)
       return 0;
     }
 
-  /* These variables are used to keep track of which argument we're at. */
-  int arg = 0;
-  int index = 0;
-  char* get_from = NULL;
 
   /*----------------------------------------------------------------------.
    | OPTIONS                                                              |
-   | An array of structs that list all possible arguments that can be     |
-   | provided by the user.                                                |
+   | The command-line options are supposed to be used interactively.      |
+   | Therefore I chose not to use the getopt functionality that most GNU  |
+   | programs seem to follow.                                             |
+   |                                                                      |
+   | I find Git to be a pretty good example of how it should work.        |
    '----------------------------------------------------------------------*/
-  static struct option options[] =
-    {
-      { "add-repo",          required_argument, 0, 'a' },
-      { "config",            required_argument, 0, 'c' },
-      { "remove-repo",       required_argument, 0, 'r' },
-      { "get",               required_argument, 0, 'g' },
-      { "from",              required_argument, 0, 'f' },
-      { "help",              no_argument,       0, 'h' },
-      { "version",           no_argument,       0, 'v' },
-      { 0,                   0,                 0, 0   }
-    };
 
-  while ( arg != -1 )
+  /* OPTION: add
+   *   This option gives the user the ability to add a repository.
+   */
+  if (!strcmp (argv[1], "add"))
     {
-      /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "a:c:r:hv", options, &index);
+      
+    }
 
-      switch (arg)
+  /* OPTION: create
+   *   This option gives the user the ability to create a package.
+   */
+  else if (!strcmp (argv[1], "create"))
+    {
+      if (argc > 2)
 	{
-	  /* OPTION: add-repo
-	   *   This option provides a way to add a new repository to the local
-	   *   distribution.
-	   */
-	case 'a':
-	  if (optarg)
-	    {
-	      curl_global_init (CURL_GLOBAL_ALL);
-	      h_command_add_repo (optarg);
-	      curl_global_cleanup();
-	    }
-	  break;
+	  const char* name = argv[2];
+	  const char* directory = argv[3];
 
-	  /* OPTION: config
-	   *   This option provides a way to use a different configuration file
-	   *   than the default. 
-	   */
-	case 'c':
-	  if (optarg)
-	    p_configuration_from_file (&config, optarg);
-	  break;
-
-	  /* OPTION: remove-repo
-	   *   This option provides a way to remove a repository from the local
-	   *   distribution.
-	   */
-	case 'r':
-	  if (optarg)
-	    dt_map_remove (config.repositories, optarg, dt_map_free);
-	  break;
-
-	  /* OPTION: get
-	   *   This option provides a way to get a package from a repository so
-	   *   it can be used.
-	   */
-	case 'g':
-	  if (optarg)
-	    {
-	      if (!get_from)
-		get_from = optarg;
-	      else
-		h_command_get_from (optarg, get_from);
-	    }
-	  break;
-
-	  /* OPTION: get
-	   *   This option provides a way to get a package from a repository so
-	   *   it can be used.
-	   */
-	case 'f':
-	  if (optarg)
-	    {
-	      if (!get_from)
-		get_from = optarg;
-	      else
-		h_command_get_from (get_from, optarg);
-	    }
-	  break;
-
-	  /* OPTION: help
-	   * This option displays the help message.
-	   */
-	case 'h':
-	  show_help ();
-	  break;
-
-	  /* OPTION: version
-	   * This option displays the program's version.
-	   */
-	case 'v':
-	  show_version ();
-	  break;
+	  if (packagers_zip_pack (directory, name))
+	    printf ("Package '%s' has been created.\r\n", name);
+	  else
+	    printf ("Package '%s' couldn't be created.\r\n", name);
 	}
     }
+
+  else if (!strcmp (argv[1], "extract"))
+    {
+      if (argc > 2)
+	{
+	  const char* name = argv[2];
+	  const char* directory = argv[3];
+
+	  if (packagers_zip_unpack (name, directory))
+	    printf ("Package '%s' has been unpacked.\r\n", name);
+	  else
+	    printf ("Package '%s' couldn't be unpacked.\r\n", name);
+	}
+    }
+
+  else if (!strcmp (argv[1], "help"))
+    show_help ();
+
+  else if (!strcmp (argv[1], "version"))
+    show_version ();
 
   p_configuration_to_file (&config, "test.conf");
 
@@ -196,7 +144,7 @@ main (int argc, char** argv)
       repos = repos->next;
     }
 
-  printf ("\r\n");
+  puts ("");
   printf ("Number of repositories: %d\r\n", config.num_repositories);
   printf ("Number of packages: %d\r\n", config.num_packages);
 
