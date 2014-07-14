@@ -24,11 +24,10 @@
 
 #include "parsers/configuration.h"
 #include "parsers/uri.h"
-#include "datatypes/configuration.h"
-#include "datatypes/map.h"
-#include "datatypes/http_response.h"
 #include "network/http.h"
 #include "high/command.h"
+#include "database/installation.h"
+#include "database/repositories.h"
 
 /* This global variable provides access to user-specific configuration data. */
 dt_configuration config;
@@ -55,7 +54,7 @@ show_help ()
 static void
 show_version ()
 {
-  puts ("Version 0.1\r\n");
+  puts ("Version 0.1\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -74,6 +73,9 @@ main (int argc, char** argv)
       return 0;
     }
 
+  /* Set up the database before we could possibly need its functionality. 
+   * This function won't do anything when the file already exists. */
+  db_setup ("edudist.db");
 
   /*----------------------------------------------------------------------.
    | OPTIONS                                                              |
@@ -89,7 +91,28 @@ main (int argc, char** argv)
    */
   if (!strcmp (argv[1], "add"))
     {
-      
+      if (argc > 2)
+	{
+	  const char* name = argv[2];
+	  const char* domain = argv[3];
+
+	  dt_repository repo;
+	  memset (&repo, 0, sizeof (dt_repository));
+
+	  repo.name = calloc (1, strlen (name) + 1);
+	  repo.name = strcpy (repo.name, name);
+
+	  repo.domain = calloc (1, strlen (domain) + 1);
+	  repo.domain = strcpy (repo.domain, domain);
+
+	  if (db_repositories_add ("edudist.db", &repo))
+	    printf ("'%s' has been added.\n", repo.name);
+	  else
+	    printf ("Failed to add '%s'.\n", repo.name);
+
+	  free (repo.name);
+	  free (repo.domain);
+	}
     }
 
   /* OPTION: create
@@ -97,29 +120,29 @@ main (int argc, char** argv)
    */
   else if (!strcmp (argv[1], "create"))
     {
-      if (argc > 2)
+      if (argc > 3)
 	{
 	  const char* name = argv[2];
 	  const char* directory = argv[3];
 
 	  if (packagers_zip_pack (directory, name))
-	    printf ("Package '%s' has been created.\r\n", name);
+	    printf ("Package '%s' has been created.\n", name);
 	  else
-	    printf ("Package '%s' couldn't be created.\r\n", name);
+	    printf ("Package '%s' couldn't be created.\n", name);
 	}
     }
 
   else if (!strcmp (argv[1], "extract"))
     {
-      if (argc > 2)
+      if (argc > 3)
 	{
 	  const char* name = argv[2];
 	  const char* directory = argv[3];
 
 	  if (packagers_zip_unpack (name, directory))
-	    printf ("Package '%s' has been unpacked.\r\n", name);
+	    printf ("Package '%s' has been unpacked.\n", name);
 	  else
-	    printf ("Package '%s' couldn't be unpacked.\r\n", name);
+	    printf ("Package '%s' couldn't be unpacked.\n", name);
 	}
     }
 
@@ -134,19 +157,18 @@ main (int argc, char** argv)
   dt_map* repos = config.repositories;
   while (repos != NULL)
     {
-      printf ("\r\nRepository: '%s'\r\n", (char*)repos->key);
+      printf ("\nRepository: '%s'\n", (char*)repos->key);
 
       dt_map* pkgs = repos->data;
       while (pkgs != NULL)
-	  printf ("  has package '%s'\r\n", (char*)pkgs->key),
+	  printf ("  has package '%s'\n", (char*)pkgs->key),
 	    pkgs = pkgs->next;
 
       repos = repos->next;
     }
 
-  puts ("");
-  printf ("Number of repositories: %d\r\n", config.num_repositories);
-  printf ("Number of packages: %d\r\n", config.num_packages);
+  printf ("Number of repositories: %d\n", config.num_repositories);
+  printf ("Number of packages: %d\n", config.num_packages);
 
   dt_map_free (config.repositories, dt_map_free), config.repositories = NULL;
 
