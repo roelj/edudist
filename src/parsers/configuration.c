@@ -42,7 +42,7 @@ p_configuration_cut_newline (char* line)
 int
 p_configuration_from_file (dt_configuration* config, const char* path)
 {
-  /* We we cannot access the file, return with error. */
+  /* If we cannot access the file, return with error. */
   if (access (path, F_OK) == -1) return -1;
 
   FILE* file;
@@ -101,10 +101,10 @@ int
 p_configuration_from_data (dt_configuration* config, const char* data, 
 			   size_t data_len, const char* repository)
 {
-  /* We the data is empty, return with error. */
+  /* When the data is empty, return with error. */
   if (data == NULL) return -1;
 
-  /* Add the provided repository, if any.  */
+  /* Add the provided repository, if any. */
   if (repository != NULL)
     config->repositories = dt_map_add (config->repositories,
 				       (char *)repository,
@@ -114,7 +114,6 @@ p_configuration_from_data (dt_configuration* config, const char* data,
   /* These variables are needed to parse the file line by line. */
   char* line = NULL;
   size_t read = 0;
-
 
   //while ((read = getline (&line, &line_len, file)) != -1)
   while (read <= data_len)
