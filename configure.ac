@@ -1,4 +1,5 @@
 AC_INIT([edudist], [0.1], [roel@roelserve.com])
+AC_CONFIG_AUX_DIR([scripts])
 AM_INIT_AUTOMAKE
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([src/main.c])

@@ -1,0 +1,11 @@
+*.gcno
+*.gcda
+*.dirstamp
+*.deps/
+*.o
+*.pdf
+scripts/
+autom4te.cache
+aclocal.m4
+Makefile.in
+./Makefile
