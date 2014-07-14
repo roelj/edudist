@@ -8,4 +8,6 @@ scripts/
 autom4te.cache
 aclocal.m4
 Makefile.in
-./Makefile
+Makefile
+configure
+edudist
