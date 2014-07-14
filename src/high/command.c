@@ -50,13 +50,12 @@ h_command_add_repo (const char* uri)
 int
 h_command_get_from (const char* get, const char* from)
 {
-  char* url = calloc (1, strlen (get) + strlen (from) + 10);
-  dt_http_response* response = calloc (1, sizeof (dt_http_response));
+  dt_http_response response;
+  memset (&response, 0, sizeof (dt_http_response));
 
   /* Store the package to a file immediately. */
-  net_http_get_to_file (response->protocol, response->host,
-			response->location, response->port, get);
+  net_http_get_to_file (response.protocol, response.host,
+			response.location, response.port, get);
 
-  free (url);
   return 1;
 }

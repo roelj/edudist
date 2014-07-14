@@ -90,10 +90,11 @@ net_http_get (const char* protocol, const char* host, const char* location,
   if (handle == NULL) return NULL;
 
   size_t url_len = strlen (host) + strlen (location) + strlen (protocol) + 10;
-  char* url = calloc (1, url_len);
-  snprintf (url, url_len, "%s://%s:%d/%s", protocol, host, port, location);
+  char url[url_len];
+  memset (url, 0, url_len);
+  snprintf ((char *)&url, url_len, "%s://%s:%d/%s", protocol, host, port, location);
 
-  curl_easy_setopt (handle, CURLOPT_URL, url);
+  curl_easy_setopt (handle, CURLOPT_URL, &url);
 
   /* Configure the behavior of curl to match what we need. */
   curl_easy_setopt (handle, CURLOPT_NOPROGRESS, 1);
@@ -116,8 +117,6 @@ net_http_get (const char* protocol, const char* host, const char* location,
   /* Clean up the handle. The memory associated with it will be freed. */
   curl_easy_cleanup (handle);
 
-  free (url), url = NULL;
-
   return response;
 }
 
@@ -137,10 +136,12 @@ int net_http_get_to_file (const char* protocol, const char* host,
   if (filename == NULL) return 1;
 
   size_t url_len = strlen (host) + strlen (location) + strlen (protocol) + 10;
-  char* url = calloc (1, url_len);
-  snprintf (url, url_len, "%s://%s:%d/%s", protocol, host, port, location);
+  char url[url_len];
+  memset (url, 0, url_len);
 
-  curl_easy_setopt (handle, CURLOPT_URL, url);
+  snprintf ((char *)&url, url_len, "%s://%s:%d/%s", protocol, host, port, location);
+
+  curl_easy_setopt (handle, CURLOPT_URL, &url);
 
   /* Configure the behavior of curl to match what we need. */
   curl_easy_setopt (handle, CURLOPT_NOPROGRESS, 1);
@@ -159,7 +160,6 @@ int net_http_get_to_file (const char* protocol, const char* host,
   curl_easy_cleanup (handle);
 
   fclose (filename);
-  free (url), url = NULL;
 
   return 0;
 }
