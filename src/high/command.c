@@ -25,10 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern dt_configuration config;
-
 int
-h_command_add_repo (const char* uri)
+h_command_add_repo (dt_configuration *config, const char* uri)
 {
   dt_http_response* response = calloc (1, sizeof (dt_http_response));
   if (!p_uri (uri, &response->host, &response->location, 
@@ -38,14 +36,13 @@ h_command_add_repo (const char* uri)
   response = net_http_get (response->protocol, response->host,
 			   response->location, response->port, response);
 
-  p_configuration_from_data (&config, response->body, 
+  p_configuration_from_data (config, response->body, 
 			     response->body_len, response->host);
-  config.num_repositories++;
+  config->num_repositories++;
 
   dt_http_response_free (response);
   return 0;
 }
-
 
 int
 h_command_get_from (const char* get, const char* from)

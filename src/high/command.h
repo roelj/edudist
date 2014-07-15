@@ -20,6 +20,8 @@
 #ifndef HIGH_COMMAND_H
 #define HIGH_COMMAND_H
 
+#include "../datatypes/configuration.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,7 +36,7 @@ extern "C" {
  * This function is a wrapper for handling the 'add-repo' command-line option.
  * Returns 0 when everything went fine, 1 when something went wrong.
  */
-int h_command_add_repo (const char* uri);
+int h_command_add_repo (dt_configuration *config, const char* uri);
 
 
 /**
@@ -42,7 +44,6 @@ int h_command_add_repo (const char* uri);
  * option. Returns 1 when everything went fine, 0 when something went wrong.
  */
 int h_command_remove_repo (const char* name);
-
 
 /**
  * This function is a wrapper for handling the 'get' and 'from' command-line 
