@@ -22,7 +22,7 @@
 #include "sqlite3.h"
 #include <unistd.h>
 
-bool db_setup (char* location)
+bool db_setup (const char* location)
 {
   /* Only continue when the file does not exist yet. Otherwise assume the 
    * database has been set up correctly earlier. */

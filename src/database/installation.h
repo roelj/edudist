@@ -33,7 +33,7 @@ extern "C" {
  * @param location The location to store the database file.
  * @return 'true' when everything went fine, 'false' when something went wrong.
  */
-bool db_setup (char* location);
+bool db_setup (const char* location);
 
 #ifdef __cplusplus
 }
