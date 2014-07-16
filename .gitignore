@@ -13,6 +13,6 @@ aclocal.m4
 Makefile.in
 Makefile
 configure
-edudist
-edudist.db
+moefel
+moefel.db
 doc/doxygen
