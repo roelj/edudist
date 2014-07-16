@@ -99,29 +99,33 @@ packagers_zip_pack_directory (struct zip* zip, const char* root, const char* dir
        * processed normally. */
       if (entry->d_type == DT_DIR) 
 	{
-	  zip_dir_add (zip, entry->d_name, ZIP_FL_ENC_GUESS);
+	  /* The files inside the ZIP should be placed in a subdirectory 
+	   * called 'content' to separate data from metadata. 'pathname' is the
+	   * path inside the ZIP, 'name' is the path on the filesystem. */
+	  char pathname[strlen (dir) - strlen (root) + strlen (entry->d_name) + 10];
+	  sprintf ((char *)&pathname, "content/%s%s/", dir + strlen (root), entry->d_name);
 
-	  size_t name_len = strlen (entry->d_name) + strlen (root) + 1;
-	  char* name = calloc (1, name_len + 1);
-	  snprintf (name, name_len, "%s%s/", root, entry->d_name);
+	  char name[strlen (entry->d_name) + strlen (root) + 2];
+	  sprintf ((char *)&name, "%s%s/", dir, entry->d_name);
 
-	  packagers_zip_pack_directory (zip, dir, name);
-
-	  free (name);
+	  zip_dir_add (zip, (const char*)&pathname, ZIP_FL_ENC_GUESS);
+	  packagers_zip_pack_directory (zip, root, name);
 	}
       else
 	{
-	  char* name = calloc (1, strlen (entry->d_name) + strlen (dir) + 2);
-	  if (name == NULL) return 0;
+	  size_t name_len = strlen (entry->d_name) + strlen (dir) + 2;
+	  char name[name_len];
+	  memset (&name, 0, name_len);
 
-	  name = strncpy (name, dir, strlen (dir));
-	  if (name[strlen (dir) - 1] != '/') name = strcat (name, "/");
-	  name = strcat (name, entry->d_name);
+	  strncpy ((char *)&name, dir, strlen (dir));
+	  if (name[strlen (dir) - 1] != '/') strcat ((char *)&name, "/");
+	  strncat ((char *)&name, entry->d_name, strlen (entry->d_name));
 
-	  struct zip_source* current_file = zip_source_file (zip, name, 0, 0);
-	  zip_file_add (zip, name + strlen (root), current_file, ZIP_FL_OVERWRITE);
+	  char pathname[name_len + 9];
+	  sprintf ((char *)&pathname, "content/%s", name + strlen (root));
 
-	  free (name);
+	  struct zip_source* current_file = zip_source_file (zip, (char *)&name, 0, 0);
+	  zip_file_add (zip, pathname, current_file, ZIP_FL_OVERWRITE);
 	}
     }
 
@@ -130,7 +134,7 @@ packagers_zip_pack_directory (struct zip* zip, const char* root, const char* dir
 }
 
 int
-packagers_zip_pack (const char* location, const char* destination)
+packagers_zip_pack (const char* location, const char* destination, dt_package* meta)
 {
   /* Make sure the directory path can exists. A common mistake is
    * to provide the package name as first argument and the 
@@ -147,8 +151,22 @@ packagers_zip_pack (const char* location, const char* destination)
    * fine and 0 in any other circumstance. */
   if (packagers_zip_pack_directory (file, location, location) != 1) return 0;
 
+  /* Get a string buffer of the metadata. */
+  char* output = NULL;
+  if (p_package_to_buffer (meta, &output) == 0) return 0;
+
+  /* Prepare the buffer to be added to the ZIP file. */
+  struct zip_source* source = zip_source_buffer (file, output, strlen (output), 0);
+  if (source == NULL) return 0;
+
+  /* Add the metadata to the ZIP file. */
+  if (zip_file_add (file, "metadata.txt", source, ZIP_FL_OVERWRITE) == -1) return 0;
+
   /* The files are now packed in the ZIP file. Close it and return. */
   if (zip_close (file) == -1) return 0;
+
+  /* Clean up. */
+  free (output), output = NULL;
 
   return 1;
 }

@@ -20,6 +20,8 @@
 #ifndef PACKAGERS_ZIP_H
 #define PACKAGERS_ZIP_H
 
+#include "../parsers/package.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,11 +46,12 @@ int packagers_zip_unpack (const char* location, const char* destination);
  * This function simply packs data in a directory specified by 'location'
  * and outputs a standard package to 'destination'.
  *
- * @param location The location the directory to pack.
+ * @param location    The location the directory to pack.
  * @param destination The location where the package should be written to.
+ * @param meta        The package's metadata.
  * @return 1 when everything went fine and 0 when something went wrong.
  */
-int packagers_zip_pack (const char* location, const char* destination);
+int packagers_zip_pack (const char* location, const char* destination, dt_package* meta);
 
 #ifdef __cplusplus
 }
