@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <time.h>
 
 #include "parsers/configuration.h"
 #include "parsers/uri.h"
@@ -28,6 +29,8 @@
 #include "high/command.h"
 #include "database/installation.h"
 #include "database/repositories.h"
+#include "packagers/zip.h"
+#include "misc/datetime.h"
 
 /*----------------------------------------------------------------------------.
  | SHOW_HELP                                                                  |
@@ -48,7 +51,11 @@ show_help ()
  | SHOW_VERSION                                                               |
  | This function (implemented as a macro) displays the current version.       |
  '----------------------------------------------------------------------------*/
-#define show_version() puts ("Version 0.1\n")
+#define show_version() puts ("Version 0.1\n\n"\
+  "Copyright (C) 2014 Roel Janssen <roel@moefel.org>.\n"\
+  "This is free software; see the source for copying conditions.  There is "\
+  "NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "\
+  "PURPOSE.\n")
 
 /*----------------------------------------------------------------------------.
  | SHOW_USAGE                                                                 |
@@ -128,10 +135,36 @@ main (int argc, char** argv)
       const char* name = argv[2];
       const char* directory = argv[3];
 
-      if (packagers_zip_pack (directory, name))
+      dt_package package;
+      package.name = calloc (1, 255);
+      package.description = calloc (1, 255);
+      package.license = calloc (1, 255);
+      package.location = calloc (1, 255);
+      package.checksum = NULL;
+
+      /* Ask for package metadata. */
+      printf ("Name: ");
+      package.name = fgets (package.name, 255, stdin);
+
+      printf ("Description: ");
+      package.description = fgets (package.description, 255, stdin);
+      
+      printf ("License: ");
+      package.license = fgets (package.license, 255, stdin);
+
+      printf ("Download link: ");
+      package.location = fgets (package.location, 255, stdin);
+
+      package.created_at = m_current_timestamp ();
+
+      if (packagers_zip_pack (directory, name, &package))
 	printf ("Package '%s' has been created.\n", name);
       else
 	printf ("Package '%s' couldn't be created.\n", name);
+
+      free (package.created_at);
+      free (package.name), free (package.description), 
+      free (package.license);
     }
 
   /* OPTION: extract
