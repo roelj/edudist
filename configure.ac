@@ -1,4 +1,4 @@
-AC_INIT([edudist], [0.1], [roel@roelserve.com])
+AC_INIT([moefel], [0.1], [roel@roelserve.com])
 AC_CONFIG_AUX_DIR([scripts])
 AM_INIT_AUTOMAKE
 AM_SILENT_RULES([yes])
@@ -11,6 +11,6 @@ AC_CHECK_HEADERS([stdio.h])
 AC_CONFIG_FILES([Makefile])
 
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([EDUDIST], [libcurl libzip])
+PKG_CHECK_MODULES([MOEFEL], [libcurl libzip sqlite3])
 
 AC_OUTPUT
