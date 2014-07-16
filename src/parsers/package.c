@@ -28,6 +28,8 @@
 static void
 p_package_prepare (char** location, int amount)
 {
+  if (*location == NULL) return;
+
   *location += amount;
   while (*location[0] == ' '
 	 || *location[0] == ':'
@@ -106,22 +108,45 @@ p_package_to_file (dt_package* package, const char* path)
   file = fopen (path, "w");
 
   /* We we cannot write to the file, return with error. */
-  if (file == NULL) return -1;
+  if (file == NULL) return 0;
 
+  char* output;
+  if (p_package_to_buffer (package, &output) == 0) return 0;
+
+  /* Write the string to the file. */
+  fwrite (output, 1, strlen (output), file);
+
+  /* Clean up. */
+  fclose (file);
+  free (output);
+
+  return 1;
+}
+
+int
+p_package_to_buffer (dt_package* package, char** output)
+{
   /* Allocate enough memory to hold the entire contents of the file in 
    * memory. Writing to memory should be a lot faster than writing to disk,
    * so this should lead to a performance improvement later on. */
   size_t output_len = (strlen (package->name) + strlen (package->description) +
-		       strlen (package->license) + strlen (package->location) +
-		       strlen (package->created_at)) + 75;
+		       strlen (package->license) + strlen (package->created_at) +
+		       strlen (package->location)) + 80;
 
-  char* output = calloc (1, output_len + 1);
+  *output = calloc (1, output_len + 1);
 
   /* If we cannot allocate enough memory, return with error. */
-  if (output == NULL) return 0;
+  if (*output == NULL) return 0;
+
+  /* Remove extra newline characters from the input. */
+  p_package_prepare (&package->name, 0);
+  p_package_prepare (&package->description, 0);
+  p_package_prepare (&package->license, 0);
+  p_package_prepare (&package->location, 0);
+  p_package_prepare (&package->created_at, 0);
 
   /* Copy the data from the package to a single string.*/
-  snprintf (output, output_len,
+  snprintf (*output, output_len,
 	    "Name        = %s\n"
 	    "Description = %s\n"
 	    "License     = %s\n"
@@ -130,10 +155,5 @@ p_package_to_file (dt_package* package, const char* path)
 	    package->name, package->description, package->license, 
 	    package->location, package->created_at);
 
-  /* Write the string to the file. */
-  fwrite (output, 1, strlen (output), file);
-
-  /* Clean up. */
-  fclose (file);
-  free (output);
+  return 1;
 }

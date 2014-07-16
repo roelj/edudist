@@ -52,9 +52,21 @@ int p_package_from_file (dt_package** package, const char* path);
  * This function writes package information to a file so that it can be parsed
  * with 'p_package_from_file' later on.
  *
+ * @param package The package data to write.
+ * @param path    The path to the file that should be written to.
  * @return 1 when everything went fine, 0 when something failed.
  */
 int p_package_to_file (dt_package* package, const char* path);
+
+/**
+ * This function writes package information to a string buffer. The 
+ * 'p_package_to_file' uses this function too.
+ *
+ * @param package The package data to write.
+ * @param output  A pointer to the buffer to write into.
+ * @return 1 when everything went fine, 0 when something failed.
+ */
+int p_package_to_buffer (dt_package* package, char** output);
 
 #ifdef __cplusplus
 }
