@@ -1,4 +1,4 @@
-EduDist
+Moefel
 =======
 
 This project is an attempt to create a cross-platform general-purpose 
