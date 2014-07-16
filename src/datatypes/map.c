@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2014  Roel Janssen <roel@roelserve.com>
+ * Copyright (C) 2014  Roel Janssen <roel@moefel.org>
  *
- * This file is part of edudist
+ * This file is part of moefel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

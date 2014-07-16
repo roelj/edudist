@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2013  Roel Janssen <roel@roelserve.com>
+ * Copyright (C) 2014  Roel Janssen <roel@moefel.org>
  *
- * This file is part of edudist.
+ * This file is part of moefel.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ main (int argc, char** argv)
 
   /* Set up the database before we could possibly need its functionality. 
    * This function won't do anything when the file already exists. */
-  db_setup ("edudist.db");
+  db_setup ("moefel.db");
 
   /* OPTION: add
    * ----------------------------------------------------------------------
@@ -107,7 +107,7 @@ main (int argc, char** argv)
       repo.domain = calloc (1, strlen (domain) + 1);
       repo.domain = strcpy (repo.domain, domain);
 
-      if (db_repositories_add ("edudist.db", &repo))
+      if (db_repositories_add ("moefel.db", &repo))
 	printf ("'%s' has been added.\n", repo.name);
       else
 	printf ("Failed to add '%s'.\n", repo.name);

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2013  Roel Janssen <roel@roelserve.com>
+ * Copyright (C) 2014  Roel Janssen <roel@moefel.org>
  *
- * This file is part of edudist.
+ * This file is part of moefel.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define USER_AGENT "edudist"
+#define USER_AGENT "moefel"
 
 /*----------------------------------------------------------------------------.
  | NET_HTTP_GET_HEADER                                                        |
