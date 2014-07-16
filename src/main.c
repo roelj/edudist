@@ -44,7 +44,9 @@ show_help ()
 	"    create    Create a new package.\n"
 	"    get       Retrieve a package.\n"
 	"    version   Show versioning information.\n"
-	"    help      Show this message.\n");
+	"    help      Show this message.\n\n"
+	"by passing --help after any of these commands, you'll\n"
+	"get detailed info (if available).\n");
 }
 
 /*----------------------------------------------------------------------------.
@@ -62,7 +64,7 @@ show_help ()
  | This function (implemented as a macro) displays a usage message.           |
  | It will only work when called from within main().                          |
  '----------------------------------------------------------------------------*/
-#define show_usage(msg) { printf ("Usage: %s %s\n", argv[0], msg); return 1; }
+#define show_usage(m) { printf ("Usage:\n  %s %s\n", argv[0], m); return 1; }
 
 /*----------------------------------------------------------------------------.
  | MAIN                                                                       |
@@ -191,6 +193,16 @@ main (int argc, char** argv)
    */
   else if (!strcmp (argv[1], "version"))
     show_version ();
+
+  /* OPTION: *
+   * ----------------------------------------------------------------------
+   * When there's no matching command given, display the help message.
+   */
+  else
+    {
+      printf ("The program could not understand '%s'.\n", argv[1]);
+      show_help ();
+    }
 
   return 0;
 }
