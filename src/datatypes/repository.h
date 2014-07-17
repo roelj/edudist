@@ -37,7 +37,7 @@ typedef struct
   int id;
   char* name;
   char* domain;
-  char* timestamp;
+  char* created_at;
 
   /* Relationships. */
   dt_list* packages;

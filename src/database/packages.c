@@ -35,7 +35,8 @@ db_packages_add (const char* location, dt_package* package)
    * allocation of the query string. */
   status = sqlite3_prepare_v2 (db, 
     "INSERT INTO packages (repository_id, availability, name, description, "
-    "license, location, checksum) VALUES (?, ?, ?, ?, ?, ?, ?)", -1, &result, NULL);
+    "license, category, homepage, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    -1, &result, NULL);
 
   if (status != SQLITE_OK) return false;
 
@@ -45,8 +46,9 @@ db_packages_add (const char* location, dt_package* package)
   sqlite3_bind_text (result, 3, package->name, -1, NULL);
   sqlite3_bind_text (result, 4, package->description, -1, NULL);
   sqlite3_bind_text (result, 5, package->license, -1, NULL);
-  sqlite3_bind_text (result, 6, package->location, -1, NULL);
-  sqlite3_bind_text (result, 7, package->checksum, -1, NULL);
+  sqlite3_bind_text (result, 6, package->category, -1, NULL);
+  sqlite3_bind_text (result, 7, package->homepage, -1, NULL);
+  sqlite3_bind_text (result, 8, package->checksum, -1, NULL);
 
   /* Execute the query. */
   status = sqlite3_step (result);
@@ -82,7 +84,8 @@ db_packages_add_list (const char* location, dt_list* packages)
    * allocation of the query string. */
   status = sqlite3_prepare_v2 (db, 
     "INSERT INTO packages (repository_id, availability, name, description, "
-    "license, location, checksum) VALUES (?, ?, ?, ?, ?, ?, ?)", -1, &result, NULL);
+    "license, category, homepage, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    -1, &result, NULL);
 
   if (status != SQLITE_OK) return false;
 
@@ -98,8 +101,9 @@ db_packages_add_list (const char* location, dt_list* packages)
       sqlite3_bind_text (result, 3, package->name, -1, NULL);
       sqlite3_bind_text (result, 4, package->description, -1, NULL);
       sqlite3_bind_text (result, 5, package->license, -1, NULL);
-      sqlite3_bind_text (result, 6, package->location, -1, NULL);
-      sqlite3_bind_text (result, 7, package->checksum, -1, NULL);
+      sqlite3_bind_text (result, 6, package->category, -1, NULL);
+      sqlite3_bind_text (result, 7, package->homepage, -1, NULL);
+      sqlite3_bind_text (result, 8, package->checksum, -1, NULL);
 
       /* Execute the query. */
       status = sqlite3_step (result);

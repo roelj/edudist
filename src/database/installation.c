@@ -58,7 +58,8 @@ bool db_setup (const char* location)
 	  " name varchar(255),"
 	  " description text,"
 	  " license varchar(64),"
-	  " location varchar(255),"
+	  " category varchar(255),"
+	  " homepage varchar(255),"
 	  " availability integer,"
 	  " checksum varchar(32),"
 	  " created_at timestamp DEFAULT (datetime('now','localtime')))", 0, 0, 0);

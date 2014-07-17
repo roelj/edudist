@@ -41,9 +41,10 @@ typedef struct
   char* name;
   char* description;
   char* license;
-  char* location;
-  char* checksum;
+  char* category;
+  char* homepage;
   char* created_at;
+  char* checksum;
 
   /* Relationships. */
   dt_list* files;
