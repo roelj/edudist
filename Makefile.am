@@ -9,16 +9,19 @@ moefel_SOURCES	 	= src/main.c \
 			  src/datatypes/http_response.c \
 			  src/datatypes/http_response.h \
 		  	  src/network/http.c src/network/http.h \
+		  	  src/parsers/common.c src/parsers/common.h \
 		  	  src/parsers/uri.c src/parsers/uri.h \
 		  	  src/parsers/configuration.c src/parsers/configuration.h \
 		  	  src/parsers/package.c src/parsers/package.h \
+		  	  src/parsers/repository.c src/parsers/repository.h \
 		  	  src/packagers/zip.c src/packagers/zip.h \
 		  	  src/database/installation.h src/database/installation.c \
 		  	  src/database/repositories.h src/database/repositories.c \
 		  	  src/database/packages.h src/database/packages.c \
 		  	  src/database/files.h src/database/files.c \
 		  	  src/high/command.c src/high/command.h \
-		  	  src/misc/datetime.c src/misc/datetime.h
+		  	  src/misc/datetime.c src/misc/datetime.h \
+		  	  src/misc/strings.c src/misc/strings.h
 
 moefel_LDADD 		= $(MOEFEL_LIBS) -ldl -lpthread
 
