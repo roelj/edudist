@@ -18,6 +18,7 @@
  */
 
 #include "package.h"
+#include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,35 +26,18 @@
 
 #define LINE_LENGTH 255
 
-static void
-p_package_prepare (char** location, int amount)
-{
-  if (*location == NULL) return;
-
-  *location += amount;
-  while (*location[0] == ' '
-	 || *location[0] == ':'
-	 || *location[0] == '\t'
-	 || *location[0] == '=')
-    *location += 1;
-
-  char* newline = strchr ((*location), '\r');
-  if (newline == NULL) newline = strchr (*location, '\n');
-  if (newline != NULL) (*location)[newline - *location] = '\0';
-}
-
 int
 p_package_from_file (dt_package** package, const char* path)
 {
+  /* If we cannot access the file, return with error. */
+  if (access (path, F_OK) == -1) return 0;
+
   /* Allocate memory for the package data. */
   *package = calloc (1, sizeof (dt_package));
   if (*package == NULL) return 0;
 
   /* This is a convenience variable for accessing the allocated package. */
   dt_package* pkg = *package;
-
-  /* If we cannot access the file, return with error. */
-  if (access (path, F_OK) == -1) return 0;
 
   /* Open the file specified by 'path'. */
   FILE* file;
@@ -72,27 +56,32 @@ p_package_from_file (dt_package** package, const char* path)
       /* Figure out the useful data. */
       char* location;
       if ((location = strstr ((char *)&line, "Name")) != NULL)
-	p_package_prepare (&location, 4),
+	p_prepare (&location, 4),
 	pkg->name = calloc (1, strlen (location) + 1),
 	pkg->name = strncpy (pkg->name, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "Description")) != NULL)
-	p_package_prepare (&location, 11),
+	p_prepare (&location, 11),
 	pkg->description = calloc (1, strlen (location) + 1),
 	pkg->description = strncpy (pkg->description, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "License")) != NULL)
-	p_package_prepare (&location, 7),
+	p_prepare (&location, 7),
 	pkg->license = calloc (1, strlen (location) + 1),
 	pkg->license = strncpy (pkg->license, location, strlen (location));
 
-      else if ((location = strstr ((char *)&line, "Location")) != NULL)
-	p_package_prepare (&location, 8),
-	pkg->location = calloc (1, strlen (location) + 1),
-	pkg->location = strncpy (pkg->location, location, strlen (location));
+      else if ((location = strstr ((char *)&line, "Category")) != NULL)
+	p_prepare (&location, 8),
+	pkg->category = calloc (1, strlen (location) + 1),
+	pkg->category = strncpy (pkg->category, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "Homepage")) != NULL)
+	p_prepare (&location, 8),
+	pkg->homepage = calloc (1, strlen (location) + 1),
+	pkg->homepage = strncpy (pkg->homepage, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
-	p_package_prepare (&location, 9),
+	p_prepare (&location, 9),
 	pkg->created_at = calloc (1, strlen (location) + 1),
 	pkg->created_at = strncpy (pkg->created_at, location, strlen (location));
     }
@@ -126,34 +115,46 @@ p_package_to_file (dt_package* package, const char* path)
 int
 p_package_to_buffer (dt_package* package, char** output)
 {
+  /* This variable will contain the amount of memory to allocate. */
+  size_t output_len;
+
+  /* Identifiers and whitespacing. */
+  output_len = 90;
+
+  /* Remove whitespace and newline characters from the input. */
+  p_prepare (&package->name, 0);
+  p_prepare (&package->description, 0);
+  p_prepare (&package->license, 0);
+  p_prepare (&package->category, 0);
+  p_prepare (&package->homepage, 0);
+  p_prepare (&package->created_at, 0);
+
+  /* Passing NULL to strlen() is forbidden, so make sure we don't do that. */
+  if (package->name != NULL) output_len += strlen (package->name);
+  if (package->description != NULL) output_len += strlen (package->description);
+  if (package->license != NULL) output_len += strlen (package->license);
+  if (package->category != NULL) output_len += strlen (package->category);
+  if (package->homepage != NULL) output_len += strlen (package->homepage);
+  if (package->created_at != NULL) output_len += strlen (package->created_at);
+
   /* Allocate enough memory to hold the entire contents of the file in 
    * memory. Writing to memory should be a lot faster than writing to disk,
    * so this should lead to a performance improvement later on. */
-  size_t output_len = (strlen (package->name) + strlen (package->description) +
-		       strlen (package->license) + strlen (package->created_at) +
-		       strlen (package->location)) + 80;
-
   *output = calloc (1, output_len + 1);
 
   /* If we cannot allocate enough memory, return with error. */
   if (*output == NULL) return 0;
-
-  /* Remove extra newline characters from the input. */
-  p_package_prepare (&package->name, 0);
-  p_package_prepare (&package->description, 0);
-  p_package_prepare (&package->license, 0);
-  p_package_prepare (&package->location, 0);
-  p_package_prepare (&package->created_at, 0);
 
   /* Copy the data from the package to a single string.*/
   snprintf (*output, output_len,
 	    "Name        = %s\n"
 	    "Description = %s\n"
 	    "License     = %s\n"
-	    "Location    = %s\n"
+	    "Category    = %s\n"
+	    "Homepage    = %s\n"
 	    "Timestamp   = %s\n",
 	    package->name, package->description, package->license, 
-	    package->location, package->created_at);
+	    package->category, package->homepage, package->created_at);
 
   return 1;
 }
