@@ -25,10 +25,8 @@
 #include <time.h>
 
 #include "parsers/repository.h"
-#include "parsers/configuration.h"
 #include "parsers/uri.h"
 #include "network/http.h"
-#include "high/command.h"
 #include "database/installation.h"
 #include "database/repositories.h"
 #include "packagers/zip.h"
