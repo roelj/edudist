@@ -123,7 +123,7 @@ main (int argc, char** argv)
       /* Only when the status code is 200 we should process the entry. */
       if (response->status != 200)
 	{
-	  printf ("The response was bad (%d).\n", response->status);
+	  printf ("The response was bad (%ld).\n", response->status);
 	  return 1;
 	}
 
