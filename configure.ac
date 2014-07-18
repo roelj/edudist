@@ -1,4 +1,4 @@
-AC_INIT([moefel], [0.1], [roel@roelserve.com])
+AC_INIT([moefel], [0.1], [roel@moefel.org])
 AC_CONFIG_AUX_DIR([scripts])
 AM_INIT_AUTOMAKE
 AM_SILENT_RULES([yes])
