@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <sqlite3.h>
 #include <time.h>
 
 #include "parsers/repository.h"
@@ -59,11 +60,11 @@ show_help ()
  | SHOW_VERSION                                                               |
  | This function (implemented as a macro) displays the current version.       |
  '----------------------------------------------------------------------------*/
-#define show_version() puts ("Version 0.1\n\n"\
-  "Copyright (C) 2014 Roel Janssen <roel@moefel.org>.\n"\
-  "This is free software; see the source for copying conditions.  There is "\
-  "NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "\
-  "PURPOSE.\n")
+#define show_version() printf ("Moefel v%s\n\nModules:\nlibcurl: %s\nSQLite: "\
+  "%s\n\nCopyright (C) 2014 Roel Janssen <roel@moefel.org>.\nThis is free "\
+  "software; see the source for copying conditions.  There is NO\nwarranty; "\
+  "not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",\
+  VERSION, curl_version_info(CURLVERSION_NOW)->version, sqlite3_libversion())
 
 /*----------------------------------------------------------------------------.
  | SHOW_USAGE                                                                 |
@@ -123,7 +124,8 @@ main (int argc, char** argv)
       /* Only when the status code is 200 we should process the entry. */
       if (response->status != 200)
 	{
-	  printf ("The response was bad (%ld).\n", response->status);
+	  puts ("Could not get repository information.");
+	  dt_http_response_free (response);
 	  return 1;
 	}
 
