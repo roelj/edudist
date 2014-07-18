@@ -40,11 +40,14 @@ net_http_get_header (char *ptr, size_t size, size_t nmemb, void *stream)
   /* If data->header is NULL, the call is equivalent to a malloc. So we don't
    * need to check. */
   data->header = realloc (data->header, data->header_len + data_len + 1);
-  assert (data->header != NULL);
+  if (data->header == NULL) return 0;
 
-  memcpy (data->header, ptr, data_len);
+  /* Initialize the added memory. */
+  memset (data->header + data->header_len, 0, data_len);
+
+  data->header = strncat (data->header, ptr, data_len);
   data->header_len += data_len;
-  data->header[data->header_len] = 0x0;
+  data->header[data->header_len] = '\0';
 
   return data_len;
 }
@@ -62,9 +65,12 @@ net_http_get_data (char *ptr, size_t size, size_t nmemb, void *stream)
   dt_http_response* data = *(dt_http_response**)stream;
 
   data->body = realloc (data->body, data->body_len + data_len + 1);
-  assert (data->body != NULL);
+  if (data->body == NULL) return 0;
 
-  memcpy (data->body, ptr, data_len);
+  /* Initialize the added memory. */
+  memset (data->body + data->body_len, 0, data_len);
+
+  data->body = strncat (data->body, ptr, data_len);
   data->body_len += data_len;
   data->body[data->body_len] = '\0';
 
@@ -81,7 +87,7 @@ net_http_get (const char* protocol, const char* host, const char* location,
 	      int port, dt_http_response* response)
 {
   if (response == NULL)
-    response = calloc (1, sizeof (response));
+    response = calloc (1, sizeof (dt_http_response));
 
   assert (response != NULL);
 
@@ -113,6 +119,9 @@ net_http_get (const char* protocol, const char* host, const char* location,
 
   /* Perform the request. */
   curl_easy_perform (handle);
+
+  /* Set the status code. */
+  curl_easy_getinfo (handle, CURLINFO_RESPONSE_CODE, &response->status);
 
   /* Clean up the handle. The memory associated with it will be freed. */
   curl_easy_cleanup (handle);

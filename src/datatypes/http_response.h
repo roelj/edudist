@@ -47,6 +47,9 @@ typedef struct
   char* body; /**< A variable to store the HTTP body in. */
   size_t body_len; /**< The length of the body variable. */
 
+  /* Variables to store the status of the request. */
+  long status; /**< The status code of the response. */
+
 } dt_http_response;
 
 /**
