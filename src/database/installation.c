@@ -18,6 +18,7 @@
  */
 
 #include "installation.h"
+#include "configuration.h"
 
 #include "sqlite3.h"
 #include <unistd.h>
@@ -72,12 +73,21 @@ bool db_setup (const char* location)
 	  " name varchar(255),"
 	  " type varchar(32))", 0, 0, 0);
 
+      if (status == SQLITE_OK)
+	status = sqlite3_exec (db, 
+          "CREATE TABLE config ("
+	  " key integer PRIMARY KEY,"
+	  " value varchar(255))", 0, 0, 0);
+
       /* Commit the changes to the database. */
       if (status == SQLITE_OK)
 	sqlite3_exec (db, "END TRANSACTION", 0, 0, 0);
 
       /* Whether we fail or succeed, we have to close the database. */
       sqlite3_close (db);
+
+      /* Set default values for the configuration items. */
+      if (!db_configuration_set_defaults (location)) return false;
 
       /* When the setup was completed successfully, return positively. */
       if (status == SQLITE_OK)
