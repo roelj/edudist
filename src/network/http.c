@@ -21,7 +21,6 @@
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #define USER_AGENT "moefel"
@@ -86,21 +85,31 @@ dt_http_response*
 net_http_get (const char* protocol, const char* host, const char* location, 
 	      int port, dt_http_response* response)
 {
-  if (response == NULL)
-    response = calloc (1, sizeof (dt_http_response));
-
-  assert (response != NULL);
-
-  /* Create a curl handle so we can use the curl functionality. */
-  CURL* handle = curl_easy_init ();
-  if (handle == NULL) return NULL;
-
   size_t url_len = strlen (host) + strlen (location) + strlen (protocol) + 10;
   char url[url_len];
   memset (url, 0, url_len);
   snprintf ((char *)&url, url_len, "%s://%s:%d/%s", protocol, host, port, location);
 
-  curl_easy_setopt (handle, CURLOPT_URL, &url);
+  return net_http_get_url ((char *)&url, response);
+}
+
+/*----------------------------------------------------------------------------.
+ | NET_HTTP_GET                                                               |
+ | This function uses libcurl to do the heavy lifting.                        |
+ '----------------------------------------------------------------------------*/
+dt_http_response*
+net_http_get_url (const char* url, dt_http_response* response)
+{
+  if (response == NULL)
+    response = calloc (1, sizeof (dt_http_response));
+
+  if (response == NULL) return NULL;
+
+  /* Create a curl handle so we can use the curl functionality. */
+  CURL* handle = curl_easy_init ();
+  if (handle == NULL) return NULL;
+
+  curl_easy_setopt (handle, CURLOPT_URL, url);
 
   /* Configure the behavior of curl to match what we need. */
   curl_easy_setopt (handle, CURLOPT_NOPROGRESS, 1);

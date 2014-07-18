@@ -50,6 +50,19 @@ dt_http_response* net_http_get (const char* protocol, const char* host,
 				dt_http_response* response);
 
 /**
+ * Instead of specifying every part of the url separately, this function
+ * just processes a URL that is thrown at it. It's behavior is identical to
+ * net_http_get().
+ *
+ * @param url      The URL to fetch.
+ * @param response A response struct that should be used or NULL to create a
+ *                 new one.
+ */
+
+dt_http_response* net_http_get_url (const char* url, 
+				    dt_http_response* response);
+
+/**
  * This function performs a HTTP GET request and writes the resulting data 
  * (without HTTP header) to 'file'.
  *
