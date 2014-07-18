@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <errno.h>
 
 int
 packagers_zip_unpack (const char* location, const char* destination)
@@ -38,8 +39,12 @@ packagers_zip_unpack (const char* location, const char* destination)
   /* Carefully set the permissions of the created directory. We
    * set read and write access for the owner, and read access to 
    * the group this process is being run as. */
+  #ifndef WIN32
   mode_t permissions = S_IRWXU | S_IRWXG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
   mkdir (destination, permissions); 
+  #else
+  mkdir (destination);
+  #endif
 
   int i = 0;
   for (; i < entries; i++)
@@ -96,9 +101,16 @@ packagers_zip_pack_directory (struct zip* zip, const char* root, const char* dir
       if (entry->d_name[0] == '.') continue;
 
       /* Directories should be processed recursively, and files should be 
-       * processed normally. */
+       * processed normally. With MinGW there isn't a 'd_type' in 'dirent'. */
+      #ifdef _DIRENT_HAVE_D_TYPE
       if (entry->d_type == DT_DIR) 
 	{
+      #else
+      DIR* test = opendir (entry->d_name);
+      if (test != NULL || errno != ENOTDIR)
+	{
+	  closedir (test);
+      #endif
 	  /* The files inside the ZIP should be placed in a subdirectory 
 	   * called 'content' to separate data from metadata. 'pathname' is the
 	   * path inside the ZIP, 'name' is the path on the filesystem. */

@@ -29,6 +29,7 @@
 #define LINE_LENGTH 255
 #define FROM_BUFFER false
 #define FROM_FILE   true
+#define WIN32_TEMP_FILE "moefel-temp"
 
 static int
 p_repository_from (dt_repository** repository, const char* input, bool from)
@@ -49,7 +50,17 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
   if (from == FROM_FILE)
     file = fopen (input, "r");
   else
-    file = fmemopen ((char *)input, strlen (input), "r");
+    {
+      /* With MinGW there's no memory stream available. Use a temporary file
+       * instead. Of course this is not optimal, but it's portable. */
+      #ifndef WIN32
+      file = fmemopen ((char *)input, strlen (input), "r");
+      #else
+      file = fopen (WIN32_TEMP_FILE, "rw");
+      fwrite (input, 1, strlen (input), file);
+      fseek (file, 0L, SEEK_SET);
+      #endif
+    }
 
   if (file == NULL) return 0;
 
@@ -71,6 +82,12 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
     }
 
   fclose (file);
+
+  /* When using MinGW a temporary file was created. Since we're done using it
+   * we can remove it. */
+  #ifdef WIN32
+  unlink (WIN32_TEMP_FILE);
+  #endif
   return 1;  
 }
 
