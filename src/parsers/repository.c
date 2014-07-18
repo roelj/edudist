@@ -34,7 +34,7 @@ static int
 p_repository_from (dt_repository** repository, const char* input, bool from)
 {
   /* If we cannot access the file, return with error. */
-  if (access (input, F_OK) == -1) return 0;
+  if (from == FROM_FILE && access (input, F_OK) == -1) return 0;
 
   /* Allocate memory to store the repository data. */
   *repository = calloc (1, sizeof (dt_repository));
