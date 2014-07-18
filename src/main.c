@@ -23,6 +23,7 @@
 #include <curl/curl.h>
 #include <time.h>
 
+#include "parsers/repository.h"
 #include "parsers/configuration.h"
 #include "parsers/uri.h"
 #include "network/http.h"
@@ -31,6 +32,9 @@
 #include "database/repositories.h"
 #include "packagers/zip.h"
 #include "misc/datetime.h"
+#include "misc/strings.h"
+
+#define DATABASE_NAME "moefel.db"
 
 /*----------------------------------------------------------------------------.
  | SHOW_HELP                                                                  |
@@ -40,11 +44,13 @@ static void
 show_help ()
 {
   puts ("\nThe most commonly used commands are:\n"
-	"    add       Add a repository.\n"
-	"    create    Create a new package.\n"
-	"    get       Retrieve a package.\n"
-	"    version   Show versioning information.\n"
-	"    help      Show this message.\n\n"
+	"    add        Add a repository.\n"
+	"    create     Create a new package.\n"
+	"    extract    Extract a local package.\n"
+	"    get        Retrieve a package.\n"
+	"    configure  Configure default behvior of this program.\n"
+	"    version    Show versioning information.\n"
+	"    help       Show this message.\n\n"
 	"by passing --help after any of these commands, you'll\n"
 	"get detailed info (if available).\n");
 }
@@ -88,7 +94,7 @@ main (int argc, char** argv)
 
   /* Set up the database before we could possibly need its functionality. 
    * This function won't do anything when the file already exists. */
-  db_setup ("moefel.db");
+  db_setup (DATABASE_NAME);
 
   /* OPTION: add
    * ----------------------------------------------------------------------
@@ -99,30 +105,57 @@ main (int argc, char** argv)
       /* When the user hasn't provided enough arguments, show a 
        * usage message hinting on how to use this command. This macro
        * will prevent the rest of the code from executing. */
-      if (argc <= 3 || !strcmp (argv[2], "--help"))
-	show_usage ("add <name> <domain.tld>");
+      if (argc <= 2 || !strcmp (argv[2], "--help"))
+	show_usage ("add <domain.tld>");
 
       /* These variables a purely there for a clearer understanding
        * of the code that follows. */
-      const char* name = argv[2];
-      const char* domain = argv[3];
+      const char* domain = argv[2];
 
-      dt_repository repo;
-      memset (&repo, 0, sizeof (dt_repository));
+      curl_global_init (CURL_GLOBAL_ALL);
 
-      repo.name = calloc (1, strlen (name) + 1);
-      repo.name = strcpy (repo.name, name);
+      /* Get the name and packages from the remote host. */
+      dt_http_response* response;
+      response = net_http_get ("http", domain, "moefel.repo", 80, NULL);
 
-      repo.domain = calloc (1, strlen (domain) + 1);
-      repo.domain = strcpy (repo.domain, domain);
+      curl_global_cleanup();
 
-      if (db_repositories_add ("moefel.db", &repo))
-	printf ("'%s' has been added.\n", repo.name);
+      /* Only when the status code is 200 we should process the entry. */
+      if (response->status != 200)
+	{
+	  printf ("The response was bad (%d).\n", response->status);
+	  return 1;
+	}
+
+      /* Parse the gathered information and store it in a 'dt_repository'. */
+      dt_repository* repo;
+      if (p_repository_from_buffer (&repo, response->body) == 0)
+	{
+	  printf ("Failed to add '%s'.\n", domain);
+	  return 0;
+	}
+
+      /* Clean up the memory allocated for the HTTP response. */
+      dt_http_response_free (response);
+
+      /* Set the domain name. */
+      repo->domain = calloc (1, strlen (domain) + 1);
+      repo->domain = strcpy (repo->domain, domain);
+
+      /* Set the current local time as 'created_at'. */
+      repo->created_at = m_current_timestamp();
+
+      /* Add the repository to the database. */
+      if (db_repositories_add (DATABASE_NAME, repo))
+	printf ("'%s' has been added.\n", repo->name);
       else
-	printf ("Failed to add '%s'.\n", repo.name);
+	printf ("Failed to add '%s'.\n", repo->name);
 
-      free (repo.name);
-      free (repo.domain);
+      /* Clean up the dynamically allocated memory. */
+      free (repo->name);
+      free (repo->domain);
+      free (repo->created_at);
+      free (repo);
     }
 
   /* OPTION: create
@@ -141,7 +174,8 @@ main (int argc, char** argv)
       package.name = calloc (1, 255);
       package.description = calloc (1, 255);
       package.license = calloc (1, 255);
-      package.location = calloc (1, 255);
+      package.category = calloc (1, 255);
+      package.homepage = calloc (1, 255);
       package.checksum = NULL;
 
       /* Ask for package metadata. */
@@ -154,8 +188,11 @@ main (int argc, char** argv)
       printf ("License: ");
       package.license = fgets (package.license, 255, stdin);
 
-      printf ("Download link: ");
-      package.location = fgets (package.location, 255, stdin);
+      printf ("Category: ");
+      package.category = fgets (package.category, 255, stdin);
+
+      printf ("Homepage: ");
+      package.homepage = fgets (package.homepage, 255, stdin);
 
       package.created_at = m_current_timestamp ();
 
