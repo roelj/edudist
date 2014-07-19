@@ -158,3 +158,69 @@ p_package_to_buffer (dt_package* package, char** output)
 
   return 1;
 }
+
+int
+p_packages_from_buffer (dt_list** packages, const char* input)
+{
+  /* Allocate memory for a line buffer. */
+  char line[LINE_LENGTH];
+
+  /* Allocate memory to store package information. */
+  dt_package* pkg = calloc (1, sizeof (dt_package));
+  if (pkg == NULL) return 0;
+
+  /* Read through the file line by line. */
+  int count = 0;
+  char* buffer = (char *)&line;
+  while (m_buffer_fgets (&buffer, LINE_LENGTH, input, &count) > 0)
+    {
+      /* Skip the line whenever it starts with a #. */
+      if (line[0] == '#') continue;
+
+      /* Figure out the useful data. */
+      char* location;
+      if ((location = strstr ((char *)&line, "Package")) != NULL)
+	{
+	  /* When there's a previous package, process it first. */
+          if (pkg->name != NULL)
+	    {
+	      *packages = dt_list_prepend (*packages, pkg);
+	      pkg = calloc (1, sizeof (dt_package));
+	      if (pkg == NULL) break;
+	    }
+
+          p_prepare (&location, 7),
+	  pkg->name = calloc (1, strlen (location) + 1),
+	  pkg->name = strncpy (pkg->name, location, strlen (location));
+        }
+      else if ((location = strstr ((char *)&line, "Description")) != NULL)
+	p_prepare (&location, 11),
+	pkg->description = calloc (1, strlen (location) + 1),
+	pkg->description = strncpy (pkg->description, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "License")) != NULL)
+	p_prepare (&location, 7),
+	pkg->license = calloc (1, strlen (location) + 1),
+	pkg->license = strncpy (pkg->license, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "Category")) != NULL)
+	p_prepare (&location, 8),
+	pkg->category = calloc (1, strlen (location) + 1),
+	pkg->category = strncpy (pkg->category, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "Homepage")) != NULL)
+	p_prepare (&location, 8),
+	pkg->homepage = calloc (1, strlen (location) + 1),
+	pkg->homepage = strncpy (pkg->homepage, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
+	p_prepare (&location, 9),
+	pkg->created_at = calloc (1, strlen (location) + 1),
+	pkg->created_at = strncpy (pkg->created_at, location, strlen (location));
+    }
+  
+  /* Add the last package to the list. */
+  if (pkg != NULL) *packages = dt_list_prepend (*packages, pkg);
+
+  return 1;
+}
