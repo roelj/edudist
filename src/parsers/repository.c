@@ -75,8 +75,8 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
 
       /* Figure out the useful data. */
       char* location;
-      if ((location = strstr ((char *)&line, "Name")) != NULL)
-	p_prepare (&location, 4),
+      if ((location = strstr ((char *)&line, "Repository")) != NULL)
+	p_prepare (&location, 10),
 	repo->name = calloc (1, strlen (location) + 1),
 	repo->name = strncpy (repo->name, location, strlen (location));
     }
@@ -152,7 +152,7 @@ p_repository_to_buffer (dt_repository* repository, char** output)
 
   /* Copy the data of the repository to a single string. */
   snprintf (*output, output_len,
-	    "Name        = %s\n"
+	    "Repository  = %s\n"
 	    "Timestamp   = %s\n",
 	    repository->name, repository->created_at);
 

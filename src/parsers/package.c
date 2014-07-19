@@ -55,8 +55,8 @@ p_package_from_file (dt_package** package, const char* path)
 
       /* Figure out the useful data. */
       char* location;
-      if ((location = strstr ((char *)&line, "Name")) != NULL)
-	p_prepare (&location, 4),
+      if ((location = strstr ((char *)&line, "Package")) != NULL)
+	p_prepare (&location, 7),
 	pkg->name = calloc (1, strlen (location) + 1),
 	pkg->name = strncpy (pkg->name, location, strlen (location));
 
@@ -147,7 +147,7 @@ p_package_to_buffer (dt_package* package, char** output)
 
   /* Copy the data from the package to a single string.*/
   snprintf (*output, output_len,
-	    "Name        = %s\n"
+	    "Package     = %s\n"
 	    "Description = %s\n"
 	    "License     = %s\n"
 	    "Category    = %s\n"
