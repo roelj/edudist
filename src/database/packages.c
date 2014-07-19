@@ -64,12 +64,13 @@ db_packages_add (const char* location, dt_package* package)
 }
 
 bool
-db_packages_add_list (const char* location, dt_list* packages)
+db_packages_add_list (const char* location, dt_list* packages, 
+		      int repository_id)
 {
   if (packages == NULL) return false;
 
   sqlite3* db;
-  sqlite3_stmt* result;
+  sqlite3_stmt* result = NULL;
   int status;
 
   status = sqlite3_open (location, &db);
@@ -80,23 +81,54 @@ db_packages_add_list (const char* location, dt_list* packages)
   sqlite3_exec (db, "PRAGMA journal_mode = MEMORY", 0, 0, 0);
   sqlite3_exec (db, "BEGIN TRANSACTION", 0, 0, 0);
 
-  /* By using a prepared statement we avoid SQL injection and double memory
-   * allocation of the query string. */
-  status = sqlite3_prepare_v2 (db, 
-    "INSERT INTO packages (repository_id, availability, name, description, "
-    "license, category, homepage, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    -1, &result, NULL);
-
-  if (status != SQLITE_OK) return false;
-
+  bool has_done_insert = true;
   dt_list* i = packages;
   dt_package* package;
   while (i != NULL)
     {
       package = i->data;
+      i = i->next;
+
+      /* Pretend a record for this package already exists and try to update
+       * this record. */
+      if (has_done_insert)
+	sqlite3_finalize (result),
+        status = sqlite3_prepare_v2 (db, 
+          "UPDATE packages SET description=?, license=?, category=?, homepage=?, "
+          "checksum=? WHERE name=? AND repository_id=?", -1, &result, NULL);
+
+      sqlite3_bind_text (result, 1, package->description, -1, NULL);
+      sqlite3_bind_text (result, 2, package->license, -1, NULL);
+      sqlite3_bind_text (result, 3, package->category, -1, NULL);
+      sqlite3_bind_text (result, 4, package->homepage, -1, NULL);
+      sqlite3_bind_text (result, 5, package->checksum, -1, NULL);
+      sqlite3_bind_text (result, 6, package->name, -1, NULL);
+      sqlite3_bind_int (result, 7, repository_id);
+
+      /* Execute the query. */
+      status = sqlite3_step (result);
+      if (status != SQLITE_DONE) return false;
+
+      /* When the package isn't in the database, insert it. */
+      if (sqlite3_changes (db) > 0)
+	{
+	  has_done_insert = false;
+	  sqlite3_clear_bindings (result);
+	  sqlite3_reset (result);
+	  continue;
+	}
+      else
+	has_done_insert = true;
+
+      /* Set the INSERT query instead of the UPDATE query. */
+      sqlite3_finalize (result);
+      status = sqlite3_prepare_v2 (db, 
+        "INSERT INTO packages (repository_id, availability, name, description, "
+	"license, category, homepage, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	-1, &result, NULL);
 
       /* Bind the values to the parameters. Apparantly the first index is 1. */
-      sqlite3_bind_int (result, 1, package->repository_id);
+      sqlite3_bind_int (result, 1, repository_id);
       sqlite3_bind_int (result, 2, package->availability);
       sqlite3_bind_text (result, 3, package->name, -1, NULL);
       sqlite3_bind_text (result, 4, package->description, -1, NULL);
@@ -115,8 +147,6 @@ db_packages_add_list (const char* location, dt_list* packages)
 
       if (package->files != NULL)
 	db_files_add_list (location, package->files);
-      
-      i = i->next;
     }
 
   sqlite3_finalize (result); 

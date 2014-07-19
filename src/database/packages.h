@@ -46,11 +46,13 @@ bool db_packages_add (const char* location, dt_package* package);
 /**
  * Using this function, you can add a list of packages to the local database.
  *
- * @param location The location of the database file.
- * @param packages A list of 'dt_package's.
+ * @param location      The location of the database file.
+ * @param packages      A list of 'dt_package's.
+ * @param repository_id The ID of the repository.
  * @return 'true' when everything went fine, 'false' when something went wrong.
  */
-bool db_packages_add_list (const char* location, dt_list* packages);
+bool db_packages_add_list (const char* location, dt_list* packages, 
+			   int repository_id);
 
 #ifdef __cplusplus
 }
