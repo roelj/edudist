@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
+
 /**
  * @file   misc/strings.h
  * @brief  A set of functions that simplify string related stuff.
@@ -37,6 +39,16 @@ extern "C" {
  * @param input A pointer to the string that should be modified.
  */
 void m_strip_newline (char** input);
+
+/**
+ * This function is effectively an fgets() like function for string buffers.
+ * @param line   An allocated string to store the output line in.
+ * @param length The maximum length of the output line.
+ * @param buffer The buffer to look into.
+ * @param in     An offset of where to start looking.
+ */
+int m_buffer_fgets (char** line, size_t length, const char* buffer, int* in);
+
 
 #ifdef __cplusplus
 }
