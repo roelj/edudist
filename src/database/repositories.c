@@ -56,7 +56,7 @@ db_repositories_add (const char* location, dt_repository* repository)
       /* By using a prepared statement we avoid SQL injection and double memory
        * allocation of the query string. */
       status = sqlite3_prepare_v2 (db, 
-				   "INSERT INTO repositories (name, domain) VALUES (?, ?)", -1, &result, NULL);
+        "INSERT INTO repositories (name, domain) VALUES (?, ?)", -1, &result, NULL);
 
       if (status != SQLITE_OK) return false;
 
@@ -70,11 +70,29 @@ db_repositories_add (const char* location, dt_repository* repository)
     }
 
   sqlite3_finalize (result); 
-  sqlite3_close(db);
 
   /* Add the packages to the database. */
   if (repository->packages != NULL)
-    db_packages_add_list (location, repository->packages);
+    {
+      /* In the case of the 'repositories', rowid is the same as id. */
+      int id = sqlite3_last_insert_rowid (db);
 
+      /* If no INSERT was done, we need to do a little more work to get the
+       * repository ID. */
+      if (id == 0)
+	{
+	  status = sqlite3_prepare_v2 (db, "SELECT id FROM repositories WHERE domain=?", -1, &result, NULL);
+	  sqlite3_bind_text (result, 1, repository->domain, -1, NULL);
+
+	  if (status == SQLITE_OK && sqlite3_step(result) == SQLITE_ROW)
+	    id = sqlite3_column_int (result, 0);
+
+	  sqlite3_finalize (result);
+	}
+
+      db_packages_add_list (location, repository->packages, id);
+    }
+
+  sqlite3_close(db);
   return true;
 }
