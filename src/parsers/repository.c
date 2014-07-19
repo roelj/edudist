@@ -43,32 +43,33 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
 
   /* This is a convenience variable for accessing the allocated repository. */
   dt_repository* repo = *repository;
+  char* data;
+  size_t data_len;
 
-  /* Open the file specified by 'input'. */
-  FILE* file;
-
+  /* When we're parsing a file, copy it to a buffer. */
   if (from == FROM_FILE)
-    file = fopen (input, "r");
-  else
     {
-      /* With MinGW there's no memory stream available. Use a temporary file
-       * instead. Of course this is not optimal, but it's portable. */
-      #ifndef WIN32
-      file = fmemopen ((char *)input, strlen (input), "r");
-      #else
-      file = fopen (WIN32_TEMP_FILE, "rw");
-      fwrite (input, 1, strlen (input), file);
-      fseek (file, 0L, SEEK_SET);
-      #endif
-    }
+      FILE* file;
+      file = fopen (input, "r");
+      fseek (file, 0L, SEEK_END);
+      size_t data_len = ftell (file);
 
-  if (file == NULL) return 0;
+      data = calloc (1, data_len + 1);
+      if (data == NULL || fread (data, 1, data_len, file) != data_len) 
+	return 0;
+
+      fclose (file);
+    }
+  else
+    data = (char *)input;
 
   /* Allocate memory for a line buffer. */
   char line[LINE_LENGTH];
 
   /* Read through the file line by line. */
-  while (fgets ((char *)&line, LINE_LENGTH, file) != NULL)
+  int count = 0;
+  char* buffer = (char *)&line;
+  while (m_buffer_fgets (&buffer, LINE_LENGTH, data, &count) > 0)
     {
       /* Skip the line whenever it starts with a #. */
       if (line[0] == '#') continue;
@@ -81,13 +82,12 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
 	repo->name = strncpy (repo->name, location, strlen (location));
     }
 
-  fclose (file);
+  /* Parse packages from the same input buffer. */
+  p_packages_from_buffer (&repo->packages, data);
 
-  /* When using MinGW a temporary file was created. Since we're done using it
-   * we can remove it. */
-  #ifdef WIN32
-  unlink (WIN32_TEMP_FILE);
-  #endif
+  /* Clean up the allocated memory. */
+  if (from == FROM_FILE) free (data);
+
   return 1;  
 }
 
