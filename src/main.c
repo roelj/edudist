@@ -22,6 +22,7 @@
 #include <string.h>
 #include <curl/curl.h>
 #include <sqlite3.h>
+#include <zip.h>
 #include <time.h>
 
 #include "parsers/repository.h"
@@ -58,11 +59,12 @@ show_help ()
  | SHOW_VERSION                                                               |
  | This function (implemented as a macro) displays the current version.       |
  '----------------------------------------------------------------------------*/
-#define show_version() printf ("Moefel v%s\n\nModules:\nlibcurl: %s\nSQLite: "\
-  "%s\n\nCopyright (C) 2014 Roel Janssen <roel@moefel.org>.\nThis is free "\
-  "software; see the source for copying conditions.  There is NO\nwarranty; "\
-  "not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",\
-  VERSION, curl_version_info(CURLVERSION_NOW)->version, sqlite3_libversion())
+#define show_version() printf ("Moefel v%s\n\nModules:\nlibcurl: %s\nlibzip: "\
+  "%s\nSQLite: %s\n\nCopyright (C) 2014 Roel Janssen <roel@moefel.org>.\nThis"\
+  " is free software; see the source for copying conditions.  There is NO\n"\
+  "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "\
+  "PURPOSE.\n\n", VERSION, curl_version_info(CURLVERSION_NOW)->version, \
+  LIBZIP_VERSION, sqlite3_libversion())
 
 /*----------------------------------------------------------------------------.
  | SHOW_USAGE                                                                 |
