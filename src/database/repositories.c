@@ -32,20 +32,42 @@ db_repositories_add (const char* location, dt_repository* repository)
   status = sqlite3_open (location, &db);
   if (status != SQLITE_OK) return false;
 
-  /* By using a prepared statement we avoid SQL injection and double memory
-   * allocation of the query string. */
-  status = sqlite3_prepare_v2 (db, 
-    "INSERT INTO repositories (name, domain) VALUES (?, ?)", -1, &result, NULL);
 
-  if (status != SQLITE_OK) return false;
+  /* Pretend a record for this domain already exists and try to update
+   * this record. */
+  status = sqlite3_prepare_v2 (db,
+    "UPDATE repositories SET name=? WHERE domain=?", -1, &result, NULL);
 
-  /* Bind the values to the parameters. Apparantly the first index is 1. */
+  /* Bind the values to the parameters. */
   sqlite3_bind_text (result, 1, repository->name, -1, NULL);
   sqlite3_bind_text (result, 2, repository->domain, -1, NULL);
 
   /* Execute the query. */
   status = sqlite3_step (result);
   if (status != SQLITE_DONE) return false;
+
+  /* See whether a row was affected. If not, the record doesn't exist and
+   * we should run an INSERT query instead. */
+  if (sqlite3_changes (db) == 0)
+    {
+      /* Clean up the previous prepared statement and its result set. */
+      sqlite3_finalize (result);
+
+      /* By using a prepared statement we avoid SQL injection and double memory
+       * allocation of the query string. */
+      status = sqlite3_prepare_v2 (db, 
+				   "INSERT INTO repositories (name, domain) VALUES (?, ?)", -1, &result, NULL);
+
+      if (status != SQLITE_OK) return false;
+
+      /* Bind the values to the parameters. Apparantly the first index is 1. */
+      sqlite3_bind_text (result, 1, repository->name, -1, NULL);
+      sqlite3_bind_text (result, 2, repository->domain, -1, NULL);
+
+      /* Execute the query. */
+      status = sqlite3_step (result);
+      if (status != SQLITE_DONE) return false;
+    }
 
   sqlite3_finalize (result); 
   sqlite3_close(db);
