@@ -10,7 +10,6 @@ moefel_SOURCES	 	= src/main.c \
 			  src/datatypes/http_response.h \
 		  	  src/network/http.c src/network/http.h \
 		  	  src/parsers/common.c src/parsers/common.h \
-		  	  src/parsers/uri.c src/parsers/uri.h \
 		  	  src/parsers/package.c src/parsers/package.h \
 		  	  src/parsers/repository.c src/parsers/repository.h \
 		  	  src/packagers/zip.c src/packagers/zip.h \
