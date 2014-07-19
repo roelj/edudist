@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 #include "../datatypes/package.h"
+#include "../datatypes/list.h"
 #include <stddef.h>
 
 /**
@@ -67,6 +68,16 @@ int p_package_to_file (dt_package* package, const char* path);
  * @return 1 when everything went fine, 0 when something failed.
  */
 int p_package_to_buffer (dt_package* package, char** output);
+
+/**
+ * This function reads package information from a buffer and puts the
+ * packages in a 'dt_list'.
+ *
+ * @param packages The package data to write.
+ * @param buffer   The buffer to read data from.
+ * @return 1 when everything went fine, 0 when something failed.
+ */
+int p_packages_from_buffer (dt_list** packages, const char* input);
 
 #ifdef __cplusplus
 }
