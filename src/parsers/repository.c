@@ -19,6 +19,8 @@
 
 #include "repository.h"
 #include "common.h"
+#include "../misc/strings.h"
+#include "package.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +46,6 @@ p_repository_from (dt_repository** repository, const char* input, bool from)
   /* This is a convenience variable for accessing the allocated repository. */
   dt_repository* repo = *repository;
   char* data;
-  size_t data_len;
 
   /* When we're parsing a file, copy it to a buffer. */
   if (from == FROM_FILE)
