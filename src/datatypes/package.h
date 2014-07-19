@@ -51,4 +51,10 @@ typedef struct
 
 } dt_package;
 
+/**
+ * This function properly cleans up an instance of a 'dt_package'.
+ * @param package  The instance to be cleaned up.
+ */
+void dt_package_free (dt_package* repository);
+
 #endif//DATATYPES_PACKAGE_H

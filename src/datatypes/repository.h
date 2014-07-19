@@ -44,4 +44,10 @@ typedef struct
 
 } dt_repository;
 
+/**
+ * This function properly cleans up an instance of a 'dt_repository'.
+ * @param repo  The instance to be cleaned up.
+ */
+void dt_repository_free (dt_repository* repo);
+
 #endif//DATATYPES_REPOSITORY_H
