@@ -37,7 +37,6 @@ extern "C" {
  * integers in the database. Their meanings are defined with these macros.
  */
 #define KEY_STORAGE_PATH 1
-#define KEY_CONFIG_PATH  2
 
 /**
  * Using this function, you can set the configuration item's values to 
