@@ -45,6 +45,7 @@ show_help ()
   puts ("\nThe most commonly used commands are:\n"
 	"    enable     Add a repository.\n"
 //	"    disable    Remove a repository.\n"
+//	"    update     Update metadata of repositories.\n"
 	"    create     Create a new package.\n"
 	"    extract    Extract a local package.\n"
 //	"    get        Retrieve a package.\n"
@@ -154,10 +155,7 @@ main (int argc, char** argv)
 	printf ("Failed to add '%s'.\n", repo->name);
 
       /* Clean up the dynamically allocated memory. */
-      free (repo->name);
-      free (repo->domain);
-      free (repo->created_at);
-      free (repo);
+      dt_repository_free (repo);
     }
 
   /* OPTION: create
