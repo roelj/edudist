@@ -26,7 +26,6 @@
 #include <time.h>
 
 #include "parsers/repository.h"
-#include "parsers/uri.h"
 #include "network/http.h"
 #include "database/installation.h"
 #include "database/repositories.h"
@@ -44,11 +43,12 @@ static void
 show_help ()
 {
   puts ("\nThe most commonly used commands are:\n"
-	"    add        Add a repository.\n"
+	"    enable     Add a repository.\n"
+//	"    disable    Remove a repository.\n"
 	"    create     Create a new package.\n"
 	"    extract    Extract a local package.\n"
-	"    get        Retrieve a package.\n"
-	"    configure  Configure default behvior of this program.\n"
+//	"    get        Retrieve a package.\n"
+//	"    set        Configure default behvior of this program.\n"
 	"    version    Show versioning information.\n"
 	"    help       Show this message.\n\n"
 	"by passing --help after any of these commands, you'll\n"
@@ -97,17 +97,17 @@ main (int argc, char** argv)
    * This function won't do anything when the file already exists. */
   db_setup (DATABASE_NAME);
 
-  /* OPTION: add
+  /* OPTION: enable
    * ----------------------------------------------------------------------
    * This option gives the user the ability to add a repository.
    */
-  if (!strcmp (argv[1], "add"))
+  if (!strcmp (argv[1], "enable"))
     {
       /* When the user hasn't provided enough arguments, show a 
        * usage message hinting on how to use this command. This macro
        * will prevent the rest of the code from executing. */
       if (argc <= 2 || !strcmp (argv[2], "--help"))
-	show_usage ("add <domain.tld>");
+	show_usage ("enable <domain.tld>");
 
       /* These variables a purely there for a clearer understanding
        * of the code that follows. */
