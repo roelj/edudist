@@ -29,6 +29,7 @@
 #include "network/http.h"
 #include "database/installation.h"
 #include "database/repositories.h"
+#include "database/packages.h"
 #include "packagers/zip.h"
 #include "misc/datetime.h"
 #include "misc/strings.h"
@@ -48,6 +49,8 @@ show_help ()
 //	"    update     Update metadata of repositories.\n"
 	"    create     Create a new package.\n"
 	"    extract    Extract a local package.\n"
+	"    list       List packages.\n"
+	"    search     Search for packages.\n"
 //	"    get        Retrieve a package.\n"
 //	"    set        Configure default behvior of this program.\n"
 	"    version    Show versioning information.\n"
@@ -73,6 +76,29 @@ show_help ()
  | It will only work when called from within main().                          |
  '----------------------------------------------------------------------------*/
 #define show_usage(m) { printf ("Usage:\n  %s %s\n", argv[0], m); return 1; }
+
+static void show_package_list (dt_list* packages)
+{
+  if (packages != NULL)
+    puts ("NAME                          LICENSE     CATEGORY    CREATED_AT\n"
+	  "----------------------------- ----------- ----------- -------------------");
+
+  dt_list* packages_head = packages;
+  while (packages != NULL)
+    {
+      dt_package* p = (dt_package*)packages->data;
+
+      printf ("%-29s %-11s %-11s %s\n",
+	      p->name,
+	      p->license,
+	      p->category,
+	      p->created_at);
+      dt_package_free (p), packages->data = NULL;
+      packages = packages->next;
+    }
+
+  dt_list_free (packages_head);
+}
 
 /*----------------------------------------------------------------------------.
  | MAIN                                                                       |
@@ -205,6 +231,36 @@ main (int argc, char** argv)
       free (package.name), free (package.description), 
       free (package.license);
     }
+
+  /* OPTION: list
+   * ----------------------------------------------------------------------
+   * This option gives the user the ability to list packages by repostory.
+   */
+  else if (!strcmp (argv[1], "list"))
+    {
+      dt_list* packages = NULL;
+      if (argc > 2)
+	db_packages_get_by_repository (DATABASE_NAME, argv[2], &packages);
+      else
+	db_packages_get_all (DATABASE_NAME, &packages);
+
+      show_package_list (packages);
+    }
+
+  /* OPTION: search
+   * ----------------------------------------------------------------------
+   * This option gives the user the ability to list packages by repostory.
+   */
+  else if (!strcmp (argv[1], "search"))
+    {
+      if (argc <= 2 || !strcmp (argv[2], "--help"))
+	show_usage ("search <keyword>");
+
+      dt_list* packages = NULL;
+      db_packages_get_by_keyword (DATABASE_NAME, argv[2], &packages);
+      show_package_list (packages);
+    }
+
 
   /* OPTION: extract
    * ----------------------------------------------------------------------

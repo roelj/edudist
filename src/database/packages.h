@@ -54,6 +54,50 @@ bool db_packages_add (const char* location, dt_package* package);
 bool db_packages_add_list (const char* location, dt_list* packages, 
 			   int repository_id);
 
+/**
+ * Using this function, you can easily create a custom result set.
+ *
+ * @param location      The location of the database file.
+ * @param filter        Start with "WHERE" followed by your own narrowing.
+ * @param packages      A pointer to a (empty) dt_list item.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_get_by_custom_filter (const char* location, const char* keyword,
+				       dt_list** packages);
+
+/**
+ * Using this function, you can get a list of packages that belong to a 
+ * particular repository.
+ *
+ * @param location      The location of the database file.
+ * @param repository    The link of the repository.
+ * @param packages      A pointer to a (empty) dt_list item.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_get_by_repository (const char* location, 
+				    const char* repository, dt_list** packages);
+
+/**
+ * Using this function, you can get a list of packages that match with a 
+ * particular keyword.
+ *
+ * @param location      The location of the database file.
+ * @param keyword       The keyword to search for.
+ * @param packages      A pointer to a (empty) dt_list item.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_get_by_keyword (const char* location, const char* keyword,
+				 dt_list** packages);
+
+/**
+ * Using this function, you can get a list of packages all packages.
+ *
+ * @param location      The location of the database file.
+ * @param packages      A pointer to a (empty) dt_list item.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_get_all (const char* location, dt_list** packages);
+
 #ifdef __cplusplus
 }
 #endif

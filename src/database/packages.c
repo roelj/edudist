@@ -19,7 +19,11 @@
 
 #include "packages.h"
 #include "files.h"
-#include "sqlite3.h"
+
+#include <sqlite3.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 bool
 db_packages_add (const char* location, dt_package* package)
@@ -156,4 +160,118 @@ db_packages_add_list (const char* location, dt_list* packages,
 
   sqlite3_close(db);
   return true;
+}
+
+bool
+db_packages_get_by_custom_filter (const char* location, const char* filter,
+			       dt_list** packages)
+{
+  if (packages == NULL) return false;
+
+  /* Allocate memory for a database connection handler, a result object and 
+   * an integer for the status. */
+  sqlite3* db;
+  sqlite3_stmt *result;
+  int status;
+
+  /* Open the database connection. */
+  status = sqlite3_open (location, &db);
+  if (status != SQLITE_OK) return false;
+
+  size_t query_len = 135 + strlen (filter);
+  char* query = calloc (1, query_len + 1);
+  strcpy (query,
+    "SELECT id, repository_id, name, description, license, category, homepage, "
+    "availability, created_at FROM packages ");
+  strcat (query, filter);
+  strcat (query, " ORDER BY id DESC");
+
+  status = sqlite3_prepare_v2 (db, query, -1, &result, NULL);
+
+  if (status == SQLITE_OK)
+    while (sqlite3_step (result) == SQLITE_ROW)
+      {
+	dt_package* item = calloc (1, sizeof (dt_package));
+	if (item == NULL) continue;
+
+	char* buffer;
+
+	item->id = sqlite3_column_int (result, 0);
+	item->repository_id = sqlite3_column_int (result, 1);
+
+	buffer = (char *)sqlite3_column_text (result, 2);
+	if (buffer != NULL && strlen (buffer) > 1)
+	  item->name = calloc (1, strlen (buffer) + 1),
+	  item->name = strcpy (item->name, buffer);
+
+	buffer = (char *)sqlite3_column_text (result, 3);
+	if (buffer != NULL && strlen (buffer) > 0)
+	  item->description = calloc (1, strlen (buffer) + 1),
+	  item->description = strcpy (item->description, buffer);
+
+	buffer = (char *)sqlite3_column_text (result, 4);
+	if (buffer != NULL && strlen (buffer) > 0)
+	  item->license = calloc (1, strlen (buffer) + 1),
+	  item->license = strcpy (item->license, buffer);
+
+	buffer = (char *)sqlite3_column_text (result, 5);
+	if (buffer != NULL && strlen (buffer) > 0)
+	  item->category = calloc (1, strlen (buffer) + 1),
+          item->category = strcpy (item->category, buffer);
+
+	buffer = (char *)sqlite3_column_text (result, 6);
+	if (buffer != NULL && strlen (buffer) > 0)
+	  item->homepage = calloc (1, strlen (buffer) + 1),
+	  item->homepage = strcpy (item->homepage, buffer);
+
+	item->availability = sqlite3_column_int (result, 7);
+
+	buffer = (char *)sqlite3_column_text (result, 8);
+	if (buffer != NULL && strlen (buffer) > 0)
+	  item->created_at = calloc (1, strlen (buffer) + 1),
+          item->created_at = strcpy (item->created_at, buffer);
+
+	*packages = dt_list_prepend (*packages, item);
+      }
+
+  sqlite3_finalize (result);
+  sqlite3_close (db);
+
+  free (query);
+  return true;  
+}
+
+
+bool
+db_packages_get_all (const char* location, dt_list** packages)
+{
+  return db_packages_get_by_custom_filter (location, "", packages);
+}
+
+bool
+db_packages_get_by_repository (const char* location, const char* repository,
+			       dt_list** packages)
+{
+  bool return_val;
+  char* filter = calloc (1, 54 + strlen (repository));
+  if (filter == NULL) return false;
+  sprintf (filter, "WHERE ( SELECT id FROM repositories WHERE domain=\"%s\" )", repository);
+  return_val = db_packages_get_by_custom_filter (location, filter, packages);
+  free (filter);
+  return return_val;
+}
+
+bool
+db_packages_get_by_keyword (const char* location, const char* keyword,
+			    dt_list** packages)
+{
+  bool return_val;
+  char* filter = calloc (1, 110 + strlen (keyword) * 2);
+  if (filter == NULL) return false;
+  sprintf (filter, "WHERE name LIKE\"%%%s%%\" OR description LIKE \"%%%s%%\" "
+	           "OR category LIKE \"%%%s%%\" OR license LIKE \"%%%s%%\"", 
+	   keyword, keyword, keyword, keyword);
+  return_val = db_packages_get_by_custom_filter (location, filter, packages);
+  free (filter);
+  return return_val;
 }
