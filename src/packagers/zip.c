@@ -114,7 +114,7 @@ packagers_zip_pack_directory (struct zip* zip, const char* root, const char* dir
 	{
       #else
       DIR* test = opendir (entry->d_name);
-      if (test != NULL || errno != ENOTDIR)
+      if (test != NULL && errno != ENOTDIR)
 	{
 	  closedir (test);
       #endif
