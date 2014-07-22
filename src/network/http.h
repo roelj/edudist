@@ -71,6 +71,8 @@ dt_http_response* net_http_get_url (const char* url,
  * @param location The location on the server that should be requested.
  * @param port     The port on which the web server is active.
  * @param file     The file to store the data to.
+ *
+ * @return 1 when everything went fine, 0 when something went wrong.
  */
 int net_http_get_to_file (const char* protocol, const char* host, 
 			  const char* location, int port, const char* file);

@@ -147,11 +147,11 @@ int net_http_get_to_file (const char* protocol, const char* host,
 {
   /* Create a curl handle so we can use the curl functionality. */
   CURL* handle = curl_easy_init ();
-  if (handle == NULL) return 1;
+  if (handle == NULL) return 0;
 
   /* Open a file to write to. */
   FILE* filename = fopen (file, "wb");
-  if (filename == NULL) return 1;
+  if (filename == NULL) return 0;
 
   size_t url_len = strlen (host) + strlen (location) + strlen (protocol) + 10;
   char url[url_len];
@@ -174,10 +174,16 @@ int net_http_get_to_file (const char* protocol, const char* host,
   /* Perform the request. */
   curl_easy_perform (handle);
 
+  /* Set the status code. */
+  int status_code;
+  curl_easy_getinfo (handle, CURLINFO_RESPONSE_CODE, &status_code);
+
   /* Clean up the handle. The memory associated with it will be freed. */
   curl_easy_cleanup (handle);
 
   fclose (filename);
+
+  if (status_code == 200) return 1;
 
   return 0;
 }
