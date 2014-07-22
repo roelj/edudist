@@ -37,12 +37,13 @@ typedef struct
   /* Core members. */
   int id;
   int repository_id;
-  int availability;
+  int is_local;
   char* name;
+  char* domain;
   char* description;
   char* license;
   char* category;
-  char* homepage;
+  char* location;
   char* created_at;
   char* checksum;
 
@@ -55,6 +56,6 @@ typedef struct
  * This function properly cleans up an instance of a 'dt_package'.
  * @param package  The instance to be cleaned up.
  */
-void dt_package_free (dt_package* repository);
+void dt_package_free (dt_package* package);
 
 #endif//DATATYPES_PACKAGE_H

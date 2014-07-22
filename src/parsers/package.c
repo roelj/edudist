@@ -77,10 +77,10 @@ p_package_from_file (dt_package** package, const char* path)
 	pkg->category = calloc (1, strlen (location) + 1),
 	pkg->category = strncpy (pkg->category, location, strlen (location));
 
-      else if ((location = strstr ((char *)&line, "Homepage")) != NULL)
+      else if ((location = strstr ((char *)&line, "Location")) != NULL)
 	p_prepare (&location, 8),
-	pkg->homepage = calloc (1, strlen (location) + 1),
-	pkg->homepage = strncpy (pkg->homepage, location, strlen (location));
+	pkg->location = calloc (1, strlen (location) + 1),
+	pkg->location = strncpy (pkg->location, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
 	p_prepare (&location, 9),
@@ -128,7 +128,7 @@ p_package_to_buffer (dt_package* package, char** output)
   p_prepare (&package->description, 0);
   p_prepare (&package->license, 0);
   p_prepare (&package->category, 0);
-  p_prepare (&package->homepage, 0);
+  p_prepare (&package->location, 0);
   p_prepare (&package->created_at, 0);
 
   /* Passing NULL to strlen() is forbidden, so make sure we don't do that. */
@@ -136,7 +136,7 @@ p_package_to_buffer (dt_package* package, char** output)
   if (package->description != NULL) output_len += strlen (package->description);
   if (package->license != NULL) output_len += strlen (package->license);
   if (package->category != NULL) output_len += strlen (package->category);
-  if (package->homepage != NULL) output_len += strlen (package->homepage);
+  if (package->location != NULL) output_len += strlen (package->location);
   if (package->created_at != NULL) output_len += strlen (package->created_at);
 
   /* Allocate enough memory to hold the entire contents of the file in 
@@ -153,10 +153,10 @@ p_package_to_buffer (dt_package* package, char** output)
 	    "Description = %s\n"
 	    "License     = %s\n"
 	    "Category    = %s\n"
-	    "Homepage    = %s\n"
+	    "Location    = %s\n"
 	    "Timestamp   = %s\n",
 	    package->name, package->description, package->license, 
-	    package->category, package->homepage, package->created_at);
+	    package->category, package->location, package->created_at);
 
   return 1;
 }
@@ -210,10 +210,10 @@ p_packages_from_buffer (dt_list** packages, const char* input)
 	pkg->category = calloc (1, strlen (location) + 1),
 	pkg->category = strncpy (pkg->category, location, strlen (location));
 
-      else if ((location = strstr ((char *)&line, "Homepage")) != NULL)
+      else if ((location = strstr ((char *)&line, "Location")) != NULL)
 	p_prepare (&location, 8),
-	pkg->homepage = calloc (1, strlen (location) + 1),
-	pkg->homepage = strncpy (pkg->homepage, location, strlen (location));
+	pkg->location = calloc (1, strlen (location) + 1),
+	pkg->location = strncpy (pkg->location, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
 	p_prepare (&location, 9),

@@ -49,6 +49,7 @@ bool db_setup (const char* location)
 	  " id integer PRIMARY KEY AUTOINCREMENT,"
 	  " name varchar(255),"
 	  " domain varchar(255),"
+	  " is_enabled tinyint(1),"
 	  " created_at timestamp DEFAULT (datetime('now','localtime')))", 0, 0, 0);
 
       if (status == SQLITE_OK)
@@ -60,8 +61,8 @@ bool db_setup (const char* location)
 	  " description text,"
 	  " license varchar(64),"
 	  " category varchar(255),"
-	  " homepage varchar(255),"
-	  " availability integer,"
+	  " location varchar(255),"
+	  " is_local tinyint(1),"
 	  " checksum varchar(32),"
 	  " created_at timestamp DEFAULT (datetime('now','localtime')))", 0, 0, 0);
 
