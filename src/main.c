@@ -125,10 +125,6 @@ main (int argc, char** argv)
       return 0;
     }
 
-  /* This variable provides access to user-specific configuration data. */
-  dt_configuration config;
-  memset (&config, 0, sizeof (dt_configuration));
-
   /* Set up the database before we could possibly need its functionality. 
    * This function won't do anything when the file already exists. */
   db_setup (DATABASE_NAME);

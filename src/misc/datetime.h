@@ -20,8 +20,6 @@
 #ifndef MISC_DATETIME_H
 #define MISC_DATETIME_H
 
-#include "../datatypes/configuration.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
