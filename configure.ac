@@ -1,6 +1,6 @@
 AC_INIT([moefel], [0.1], [roel@moefel.org])
 AC_CONFIG_AUX_DIR([scripts])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_PROG_CC
