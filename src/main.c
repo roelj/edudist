@@ -24,6 +24,7 @@
 #include <sqlite3.h>
 #include <zip.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "parsers/repository.h"
 #include "network/http.h"
@@ -45,13 +46,13 @@ show_help ()
 {
   puts ("\nThe most commonly used commands are:\n"
 	"    enable     Add a repository.\n"
-//	"    disable    Remove a repository.\n"
+	"    disable    Remove a repository.\n"
 //	"    update     Update metadata of repositories.\n"
 	"    create     Create a new package.\n"
 	"    extract    Extract a local package.\n"
 	"    list       List packages.\n"
 	"    search     Search for packages.\n"
-//	"    get        Retrieve a package.\n"
+	"    get        Retrieve a package.\n"
 //	"    set        Configure default behvior of this program.\n"
 	"    version    Show versioning information.\n"
 	"    help       Show this message.\n\n"
@@ -77,22 +78,30 @@ show_help ()
  '----------------------------------------------------------------------------*/
 #define show_usage(m) { printf ("Usage:\n  %s %s\n", argv[0], m); return 1; }
 
+/*----------------------------------------------------------------------------.
+ | SHOW_PACKAGE_LIST                                                          |
+ | This function displays output of a package overview.                       |
+ '----------------------------------------------------------------------------*/
 static void show_package_list (dt_list* packages)
 {
   if (packages != NULL)
-    puts ("NAME                          LICENSE     CATEGORY    CREATED_AT\n"
-	  "----------------------------- ----------- ----------- -------------------");
+    puts ("NAME                          REPOSITORY       LICENSE     CREATED_AT\n"
+	  "----------------------------- ---------------- ----------- ----------");
 
   dt_list* packages_head = packages;
   while (packages != NULL)
     {
       dt_package* p = (dt_package*)packages->data;
 
-      printf ("%-29s %-11s %-11s %s\n",
+      /* Make sure only the date is shown to save some space. */
+      p->created_at[10] = '\0';
+
+      printf ("%-29s %-16s %-11s %s\n",
 	      p->name,
+	      p->domain,
 	      p->license,
-	      p->category,
 	      p->created_at);
+
       dt_package_free (p), packages->data = NULL;
       packages = packages->next;
     }
@@ -160,7 +169,7 @@ main (int argc, char** argv)
       dt_repository* repo;
       if (p_repository_from_buffer (&repo, response->body) == 0)
 	{
-	  printf ("Failed to add '%s'.\n", domain);
+	  printf ("Error while parsing packages from '%s'.\n", domain);
 	  return 0;
 	}
 
@@ -175,14 +184,88 @@ main (int argc, char** argv)
       repo->created_at = m_current_timestamp();
 
       /* Add the repository to the database. */
-      if (db_repositories_add (DATABASE_NAME, repo))
-	printf ("'%s' has been added.\n", repo->name);
-      else
+      if (!db_repositories_add (DATABASE_NAME, repo))
 	printf ("Failed to add '%s'.\n", repo->name);
 
       /* Clean up the dynamically allocated memory. */
       dt_repository_free (repo);
     }
+
+  /* OPTION: disable
+   * ----------------------------------------------------------------------
+   * This option gives the user the ability to remove a repository.
+   */
+  else if (!strcmp (argv[1], "disable"))
+    {
+      /* When the user hasn't provided enough arguments, show a 
+       * usage message hinting on how to use this command. This macro
+       * will prevent the rest of the code from executing. */
+      if (argc <= 2 || !strcmp (argv[2], "--help"))
+	show_usage ("get <package-name> (from <repository>)");
+
+      db_repositories_disable (DATABASE_NAME, argv[2]);
+    }
+
+
+  /* OPTION: get
+   * ----------------------------------------------------------------------
+   * This option gives the user the ability to remove a repository.
+   */
+  else if (!strcmp (argv[1], "get"))
+    {
+      /* When the user hasn't provided enough arguments, show a 
+       * usage message hinting on how to use this command. This macro
+       * will prevent the rest of the code from executing. */
+      if (argc <= 2 || !strcmp (argv[2], "--help"))
+	show_usage ("get <domain.tld>");
+
+      curl_global_init (CURL_GLOBAL_ALL);
+
+      char* package = argv[2];
+      char* repository = NULL;
+
+      if (argc > 4 && !strcmp (argv[3], "from")) repository = argv[4];
+
+      /* Get the package data from the local database. */
+      dt_package* pkg;
+      if (db_packages_get_by_name (DATABASE_NAME, package, repository, &pkg)
+	  && pkg != NULL)
+	{
+	  puts ("Downloading package...");
+
+	  char* pkg_full_name[5 + strlen (pkg->name)];
+	  strcpy ((char *)&pkg_full_name, pkg->name);
+	  strcat ((char *)&pkg_full_name, ".pkg");
+
+	  /* Download the package. */
+	  if (net_http_get_to_file ("http", pkg->domain, pkg->location, 80, (char *)&pkg_full_name))
+	    {
+	      puts ("Unpacking package...");
+
+	      /* Extract it into the library. */
+	      if (packagers_zip_unpack ((char *)&pkg_full_name, "PackageTest"))
+		{
+		  puts ("Done!");
+
+		  /* Remove the compressed package from the filesystem. */
+		  unlink ((char *)&pkg_full_name);
+		}
+	      else
+		puts ("There was an error while unpacking the package.");
+	    }
+	  else
+	    puts ("There was an error while downloading package.");
+	}
+      else
+	puts ("There was an error while processing package data.");
+
+      /* TODO: Add a size field to the packages table to be able to show a
+       * progress bar. */
+
+      dt_package_free (pkg);
+      curl_global_cleanup();
+    }
+  
 
   /* OPTION: create
    * ----------------------------------------------------------------------
@@ -201,7 +284,7 @@ main (int argc, char** argv)
       package.description = calloc (1, 255);
       package.license = calloc (1, 255);
       package.category = calloc (1, 255);
-      package.homepage = calloc (1, 255);
+      package.location = calloc (1, 255);
       package.checksum = NULL;
 
       /* Ask for package metadata. */
@@ -217,8 +300,8 @@ main (int argc, char** argv)
       printf ("Category: ");
       package.category = fgets (package.category, 255, stdin);
 
-      printf ("Homepage: ");
-      package.homepage = fgets (package.homepage, 255, stdin);
+      printf ("Location: ");
+      package.location = fgets (package.location, 255, stdin);
 
       package.created_at = m_current_timestamp ();
 

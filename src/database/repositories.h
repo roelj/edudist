@@ -42,6 +42,16 @@ extern "C" {
  */
 bool db_repositories_add (const char* location, dt_repository* repository);
 
+/**
+ * Using this function, you can disable a repository in the local database.
+ *
+ * @param location   The location of the database file.
+ * @param domain     The domain name of the repository.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_repositories_disable (const char* location, const char* domain);
+
+
 #ifdef __cplusplus
 }
 #endif

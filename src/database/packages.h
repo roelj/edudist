@@ -98,6 +98,17 @@ bool db_packages_get_by_keyword (const char* location, const char* keyword,
  */
 bool db_packages_get_all (const char* location, dt_list** packages);
 
+/**
+ * Using this function, you can get a package by its name.
+ *
+ * @param location      The location of the database file.
+ * @param name          The name of the package.
+ * @param package       A pointer to a (empty) dt_package item.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_get_by_name (const char* location, const char* name, 
+			      const char* repo, dt_package** package);
+
 #ifdef __cplusplus
 }
 #endif

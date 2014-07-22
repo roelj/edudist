@@ -53,6 +53,9 @@ packagers_zip_unpack (const char* location, const char* destination)
       zip_stat_init (&st);
       if (zip_stat_index (file, i, 0, &st) == -1) return 0;
 
+      /* Only extract the content. */
+      if (!strcmp (st.name, "metadata.txt")) continue;
+
       char* contents = calloc (1, st.size + 1);
       if (contents == NULL) return 0;
 
@@ -64,12 +67,13 @@ packagers_zip_unpack (const char* location, const char* destination)
 
       char* output_path = calloc (1, strlen (st.name) + strlen (destination) + 2);
       if (output_path == NULL) return 0;
+
       output_path = strcpy (output_path, destination);
 
       if (output_path[strlen (destination) - 1] != '/')
 	output_path = strcat (output_path, "/");
 
-      output_path = strcat (output_path, st.name);
+      output_path = strcat (output_path, st.name + 8);
 
       FILE* output = fopen (output_path, "wb");
       if (output == NULL) return 0;
@@ -80,6 +84,9 @@ packagers_zip_unpack (const char* location, const char* destination)
       free (contents);
       free (output_path);
     }
+
+  /* The files are now unpacked in 'destination'. Close it and return. */
+  if (zip_close (file) == -1) return 0;
 
   return 1;
 }

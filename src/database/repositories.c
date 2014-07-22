@@ -32,11 +32,11 @@ db_repositories_add (const char* location, dt_repository* repository)
   status = sqlite3_open (location, &db);
   if (status != SQLITE_OK) return false;
 
-
   /* Pretend a record for this domain already exists and try to update
    * this record. */
   status = sqlite3_prepare_v2 (db,
-    "UPDATE repositories SET name=? WHERE domain=?", -1, &result, NULL);
+    "UPDATE repositories SET name=?, is_enabled=1 WHERE domain=?", 
+    -1, &result, NULL);
 
   /* Bind the values to the parameters. */
   sqlite3_bind_text (result, 1, repository->name, -1, NULL);
@@ -56,7 +56,8 @@ db_repositories_add (const char* location, dt_repository* repository)
       /* By using a prepared statement we avoid SQL injection and double memory
        * allocation of the query string. */
       status = sqlite3_prepare_v2 (db, 
-        "INSERT INTO repositories (name, domain) VALUES (?, ?)", -1, &result, NULL);
+        "INSERT INTO repositories (name, domain, is_enabled) VALUES (?, ?, 1)",
+        -1, &result, NULL);
 
       if (status != SQLITE_OK) return false;
 
@@ -81,7 +82,9 @@ db_repositories_add (const char* location, dt_repository* repository)
        * repository ID. */
       if (id == 0)
 	{
-	  status = sqlite3_prepare_v2 (db, "SELECT id FROM repositories WHERE domain=?", -1, &result, NULL);
+	  status = sqlite3_prepare_v2 (db,
+            "SELECT id FROM repositories WHERE domain=?", -1, &result, NULL);
+
 	  sqlite3_bind_text (result, 1, repository->domain, -1, NULL);
 
 	  if (status == SQLITE_OK && sqlite3_step(result) == SQLITE_ROW)
@@ -92,6 +95,34 @@ db_repositories_add (const char* location, dt_repository* repository)
 
       db_packages_add_list (location, repository->packages, id);
     }
+
+  sqlite3_close(db);
+  return true;
+}
+
+bool
+db_repositories_disable (const char* location, const char* domain)
+{
+  sqlite3* db;
+  sqlite3_stmt* result;
+  int status;
+
+  status = sqlite3_open (location, &db);
+  if (status != SQLITE_OK) return false;
+
+  /* Pretend a record for this domain already exists and try to update
+   * this record. */
+  status = sqlite3_prepare_v2 (db,
+    "UPDATE repositories SET is_enabled=0 WHERE domain=?", -1, &result, NULL);
+
+  /* Bind the values to the parameters. */
+  sqlite3_bind_text (result, 1, domain, -1, NULL);
+
+  /* Execute the query. */
+  status = sqlite3_step (result);
+  if (status != SQLITE_DONE) return false;
+  
+  sqlite3_finalize (result); 
 
   sqlite3_close(db);
   return true;
