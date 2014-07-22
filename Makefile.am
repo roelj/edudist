@@ -4,11 +4,11 @@ bin_PROGRAMS 		= moefel
 moefel_SOURCES	 	= src/main.c \
 			  src/datatypes/map.c src/datatypes/map.h \
 			  src/datatypes/list.c src/datatypes/list.h \
-			  src/datatypes/protocols.h \
 			  src/datatypes/repository.c src/datatypes/repository.h \
 			  src/datatypes/package.c src/datatypes/package.h \
 			  src/datatypes/http_response.c \
 			  src/datatypes/http_response.h \
+			  src/datatypes/file.h \
 		  	  src/network/http.c src/network/http.h \
 		  	  src/parsers/common.c src/parsers/common.h \
 		  	  src/parsers/package.c src/parsers/package.h \
