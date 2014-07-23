@@ -49,6 +49,17 @@ void m_strip_newline (char** input);
  */
 int m_buffer_fgets (char** line, size_t length, const char* buffer, int* in);
 
+/**
+ * This function generates a readable SHA256 hash of data provided by buffer
+ * for a length specified with buffer_len.
+ *
+ * @param buffer     The data to generate a SHA256 hash for.
+ * @param buffer_len The length of the buffer.
+ * @param checksum   A string of 65 characters that will contain the hash.
+ *
+ * @return 1 when everything went fine, 0 when something went wrong.
+ */
+int m_buffer_sha256 (const char* buffer, size_t buffer_len, char checksum[65]);
 
 #ifdef __cplusplus
 }

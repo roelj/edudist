@@ -20,6 +20,7 @@
 #include "strings.h"
 #include <string.h>
 #include <stdio.h>
+#include <openssl/sha.h>
 
 #define IS_BREAK_CHAR(c) (c == '\0' || c == '\n' || c == '\r')
 
@@ -62,4 +63,35 @@ m_buffer_fgets (char** line, size_t length, const char* buffer, int* in)
   /* Calculate the length without the breaking character. */
   total += *in - start - 1;
   return total;
+}
+
+int
+m_buffer_sha256 (const char* buffer, size_t buffer_len, char checksum[65])
+{
+  /* Use an unsigned char to store the hash data in. */
+  unsigned char hash[SHA256_DIGEST_LENGTH];
+
+  /* Let OpenSSL do the heavy lifting here. */
+  SHA256_CTX sha256;
+
+  /* Initialize the SHA256_CTX structure. */
+  if (SHA256_Init (&sha256) == 0) return 0;
+
+  /* Pass the data to the SHA256_Update function to process it. */
+  if (SHA256_Update (&sha256, buffer, buffer_len) == 0) return 0;
+
+  /* Get the hash and clean up the SHA256_CTX structure. */
+  if (SHA256_Final (hash, &sha256) == 0) return 0;
+
+  /* Create a readable version of the hash and "convert" it to 
+   * a signed char. */
+  int i = 0;
+  for(i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    sprintf (checksum + (i * 2), "%02x", hash[i]);
+
+  /* Make sure the string is terminated properly. The hash is 64 bytes, and
+   * we're setting the 65th byte to 0. */
+  checksum[64] = 0;
+
+  return 1;
 }
