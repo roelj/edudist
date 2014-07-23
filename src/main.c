@@ -34,6 +34,7 @@
 #include "packagers/zip.h"
 #include "misc/datetime.h"
 #include "misc/strings.h"
+#include "filesystem/library.h"
 
 #define DATABASE_NAME "moefel.db"
 
@@ -236,21 +237,68 @@ main (int argc, char** argv)
 	  /* Download the package. */
 	  if (net_http_get_to_file ("http", pkg->domain, pkg->location, 80, (char *)&pkg_full_name))
 	    {
-	      puts ("Unpacking package...");
+	      char* output;
+	      int file_size;
+	      if (m_file_to_buffer ((char *)&pkg_full_name, &file_size, &output) == 0 
+		  || output == NULL) 
+		{
+		  puts ("Couldn't verify data.");
+		  return 1;
+		}
+
+	      puts ("Verifying integrity...");
+	      char checksum[65];
+	      if (m_buffer_sha256 (output, file_size, checksum) == 1)
+		{
+		  char pkg_checksum[8 + strlen (pkg->location)];
+		  strcpy ((char *)&pkg_checksum, pkg->location);
+		  strcat ((char *)&pkg_checksum, ".sha256");
+
+		  dt_http_response* response;
+		  response = net_http_get ("http", pkg->domain, 
+					   (char *)&pkg_checksum, 80, NULL);
+
+		  if (response == NULL || response->status != 200)
+		    {
+		      puts ("Couldn't download checksum data.");
+		      return 1;
+		    }
+
+		  if (strcmp (response->body, (char *)&checksum))
+		    {
+		      puts ("Checksums don't match!\nWhat you've downloaded is"
+			    " not the same as what the provider intended to"
+			    " send.\n");
+		      return 1;
+		    }
+
+		  dt_http_response_free (response);
+		  free (output);
+		}
+	      else
+		{
+		  puts ("Couldn't verify data.");
+		  return 1;
+		}
 
 	      /* Extract it into the library. */
-	      if (packagers_zip_unpack ((char *)&pkg_full_name, "PackageTest"))
-		{
-		  puts ("Done!");
+	      puts ("Unpacking package...");
 
-		  /* Remove the compressed package from the filesystem. */
+	      char* repository_root = NULL;
+	      fs_create_repository_path (DATABASE_NAME, pkg->domain, &repository_root);
+
+	      if (packagers_zip_unpack ((char *)&pkg_full_name, repository_root))
+		{
 		  unlink ((char *)&pkg_full_name);
+		  puts ("Done!");
 		}
 	      else
 		puts ("There was an error while unpacking the package.");
+
+	      free (repository_root);
 	    }
 	  else
-	    puts ("There was an error while downloading package.");
+	    puts ("There was an error while downloading the package.");
 	}
       else
 	puts ("There was an error while processing package data.");
