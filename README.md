@@ -20,10 +20,15 @@ Dependencies
 
 Make sure you have the following libraries, development packages and build
 tools installed:
-* GCC or CLANG
+* GCC or CLANG[1]
 * Autotools
 * Make
+* Libzip
+* SQLite3
 * cURL development library
+  - OpenSSL
+
+[1] I've run across an issue with CLANG and Libzip. 
 
 The code is normally compiled and tested with GCC.
 
