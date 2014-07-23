@@ -61,6 +61,20 @@ int m_buffer_fgets (char** line, size_t length, const char* buffer, int* in);
  */
 int m_buffer_sha256 (const char* buffer, size_t buffer_len, char checksum[65]);
 
+/**
+ * This function copies the contents of a file to a string buffer.
+ * You have to free() the buffer yourself.
+ *
+ * @param filename   The name of the file to open.
+ * @param size       A pointer to an integer which will contain the size of
+ *                   the file's content.
+ * @param buffer     A pointer to a string buffer that will get allocated
+ *                   and contain the contents of the file.
+ *
+ * @return 1 when everything went fine, 0 when something went wrong.
+ */
+int m_file_to_buffer (const char* filename, int* size, char** buffer);
+
 #ifdef __cplusplus
 }
 #endif

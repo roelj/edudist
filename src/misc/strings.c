@@ -18,6 +18,7 @@
  */
 
 #include "strings.h"
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <openssl/sha.h>
@@ -92,6 +93,27 @@ m_buffer_sha256 (const char* buffer, size_t buffer_len, char checksum[65])
   /* Make sure the string is terminated properly. The hash is 64 bytes, and
    * we're setting the 65th byte to 0. */
   checksum[64] = 0;
+
+  return 1;
+}
+
+int 
+m_file_to_buffer (const char* filename, int* size, char** buffer)
+{
+  if (buffer == NULL) return 0;
+
+  FILE* file = fopen (filename, "rb");
+  if (file == NULL) return 0;
+
+  fseek (file, 0L, SEEK_END);
+  *size = ftell (file);
+
+  fseek (file, 0L, SEEK_SET);
+  *buffer = malloc (*size);
+  if (*buffer != NULL)
+    fread (*buffer, *size, 1, file);
+
+  fclose (file);
 
   return 1;
 }
