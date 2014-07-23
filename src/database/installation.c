@@ -63,7 +63,7 @@ bool db_setup (const char* location)
 	  " category varchar(255),"
 	  " location varchar(255),"
 	  " is_local tinyint(1),"
-	  " checksum varchar(32),"
+	  " checksum varchar(64),"
 	  " created_at timestamp DEFAULT (datetime('now','localtime')))", 0, 0, 0);
 
       if (status == SQLITE_OK)
