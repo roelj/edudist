@@ -44,6 +44,9 @@ extern "C" {
  * @param port     The port on which the web server is active.
  * @param response A response struct that should be used or NULL to create a 
  *                 new one.
+ *
+ * @return A pointer to a dt_http_response with the resutling data when 
+ *         every went fine or NULL when something went wrong.
  */
 dt_http_response* net_http_get (const char* protocol, const char* host, 
 				const char* location, int port, 
