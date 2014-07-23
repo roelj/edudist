@@ -2,6 +2,11 @@ AUTOMAKE_OPTIONS 	= subdir-objects
 AM_CFLAGS 		= $(MOEFEL_CFLAGS)
 bin_PROGRAMS 		= moefel
 moefel_SOURCES	 	= src/main.c \
+		  	  src/database/installation.h src/database/installation.c \
+		  	  src/database/repositories.h src/database/repositories.c \
+		  	  src/database/packages.h src/database/packages.c \
+		  	  src/database/files.h src/database/files.c \
+		  	  src/database/configuration.h src/database/configuration.c \
 			  src/datatypes/map.c src/datatypes/map.h \
 			  src/datatypes/list.c src/datatypes/list.h \
 			  src/datatypes/repository.c src/datatypes/repository.h \
@@ -9,20 +14,20 @@ moefel_SOURCES	 	= src/main.c \
 			  src/datatypes/http_response.c \
 			  src/datatypes/http_response.h \
 			  src/datatypes/file.h \
+		  	  src/filesystem/library.c src/filesystem/library.h \
+		  	  src/misc/datetime.c src/misc/datetime.h \
+		  	  src/misc/strings.c src/misc/strings.h \
 		  	  src/network/http.c src/network/http.h \
 		  	  src/parsers/common.c src/parsers/common.h \
 		  	  src/parsers/package.c src/parsers/package.h \
 		  	  src/parsers/repository.c src/parsers/repository.h \
-		  	  src/packagers/zip.c src/packagers/zip.h \
-		  	  src/database/installation.h src/database/installation.c \
-		  	  src/database/repositories.h src/database/repositories.c \
-		  	  src/database/packages.h src/database/packages.c \
-		  	  src/database/files.h src/database/files.c \
-		  	  src/database/configuration.h src/database/configuration.c \
-		  	  src/misc/datetime.c src/misc/datetime.h \
-		  	  src/misc/strings.c src/misc/strings.h
+		  	  src/packagers/zip.c src/packagers/zip.h
 
+if OS_WINDOWS
+moefel_LDADD 		= $(MOEFEL_LIBS)
+else
 moefel_LDADD 		= $(MOEFEL_LIBS) -ldl -lpthread
+endif
 
 docs:
 	@cd doc/; texi2pdf moefel.texi
