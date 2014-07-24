@@ -40,7 +40,11 @@ m_buffer_fgets (char** line, size_t length, const char* buffer, int* in)
 {
   /* When either the buffer or the line buffer wasn't allocated,
    * this function would crash, prevent that. */
-  if (buffer == NULL || *line == NULL) return 0;
+  if (buffer == NULL || *line == NULL || in == NULL) return 0;
+
+  /* Prevent a buffer overflow and stop whenever there's no more 
+   * data to read. */
+  if (*in + 1 >= strlen (buffer)) return 0;
 
   /* These variables are used to determine the length of the 
    * current string. */
