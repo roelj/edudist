@@ -29,9 +29,9 @@ AC_MSG_ERROR([Moefel is not (yet) supported on $host.])
 esac
 
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([CURL], [libcurl])
-PKG_CHECK_MODULES([LIBZIP], [libzip])
-PKG_CHECK_MODULES([SQLITE], [sqlite3])
-PKG_CHECK_MODULES([OPENSSL], [openssl])
+PKG_CHECK_MODULES([curl], [libcurl])
+PKG_CHECK_MODULES([libzip], [libzip])
+PKG_CHECK_MODULES([sqlite], [sqlite3])
+PKG_CHECK_MODULES([openssl], [openssl])
 
 AC_OUTPUT

@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
-AM_CFLAGS 		= $(CURL_CFLAGS) $(LIBZIP_CFLAGS) $(SQLITE_CFLAGS) $(OPENSSL_CFLAGS)
+AM_CFLAGS 		= $(curl_CFLAGS) $(libzip_CFLAGS) $(sqlite_CFLAGS) $(openssl_CFLAGS)
 bin_PROGRAMS 		= moefel
 moefel_SOURCES	 	= src/main.c \
 		  	  src/database/installation.h src/database/installation.c \
@@ -24,9 +24,9 @@ moefel_SOURCES	 	= src/main.c \
 		  	  src/packagers/zip.c src/packagers/zip.h
 
 if OS_LINUX
-moefel_LDADD 		= $(CURL_LIBS) $(LIBZIP_LIBS) $(SQLITE_LIBS) $(OPENSSL_LIBS) -ldl -lpthread
+moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) -ldl -lpthread
 else
-moefel_LDADD 		= $(CURL_LIBS) $(LIBZIP_LIBS) $(SQLITE_LIBS) $(OPENSSL_LIBS)
+moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS)
 endif
 
 docs:
