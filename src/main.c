@@ -48,7 +48,7 @@ show_help ()
   puts ("\nThe most commonly used commands are:\n"
 	"    enable     Add a repository.\n"
 	"    disable    Remove a repository.\n"
-//	"    update     Update metadata of repositories.\n"
+	"    update     Update metadata of repositories.\n"
 	"    create     Create a new package.\n"
 	"    extract    Extract a local package.\n"
 	"    list       List packages.\n"
@@ -203,6 +203,54 @@ main (int argc, char** argv)
       db_repositories_disable (DATABASE_NAME, argv[2]);
     }
 
+  /* OPTION: update
+   * ----------------------------------------------------------------------
+   * This option gives the user the ability to remove a repository.
+   */
+  else if (!strcmp (argv[1], "update"))
+    {
+      curl_global_init (CURL_GLOBAL_ALL);
+      dt_list* repos = NULL;
+      if (!db_repositories_get_all (DATABASE_NAME, &repos))
+	{
+	  puts ("Couldn't get repositories from the database.");
+	  return 1;
+	}
+
+      dt_list* r = repos;
+      while (r != NULL)
+	{
+	  dt_repository* repo = r->data;
+	  r = r->next;
+
+	  /* Skip disabled repositories. */
+	  if (repo->is_enabled == 0) continue;
+
+	  printf ("Updating '%s'\n", repo->domain);
+
+	  /* Get the name and packages from the remote host. */
+	  dt_http_response* response;
+	  response = net_http_get ("http", repo->domain, "moefel.repo", 80, NULL);
+
+	  if (response->status == 200)
+	    {
+	      dt_repository* content;
+	      p_repository_from_buffer (&content, response->body);
+	      content->domain = calloc (1, strlen (repo->domain) + 1);
+	      content->domain = strcpy (content->domain, repo->domain);
+	      db_repositories_add (DATABASE_NAME, content);
+	      dt_repository_free (content);
+	    }
+
+	  /* Clean up and move on. */
+	  dt_http_response_free (response);
+	  dt_repository_free (r->data);
+	}
+
+      dt_list_free (repos);
+      curl_global_cleanup();
+    }
+
 
   /* OPTION: get
    * ----------------------------------------------------------------------
@@ -230,72 +278,60 @@ main (int argc, char** argv)
 	{
 	  puts ("Downloading package...");
 
-	  char* pkg_full_name[5 + strlen (pkg->name)];
-	  strcpy ((char *)&pkg_full_name, pkg->name);
-	  strcat ((char *)&pkg_full_name, ".pkg");
+	  char pkg_full_name[5 + strlen (pkg->name)];
+	  strcpy ((char *)pkg_full_name, pkg->name);
+	  strcat ((char *)pkg_full_name, ".pkg");
 
 	  /* Download the package. */
-	  if (net_http_get_to_file ("http", pkg->domain, pkg->location, 80, (char *)&pkg_full_name))
+	  if (net_http_get_to_file ("http", pkg->domain, pkg->location, 80, (char *)pkg_full_name))
 	    {
 	      char* output;
 	      int file_size;
-	      if (m_file_to_buffer ((char *)&pkg_full_name, &file_size, &output) == 0 
-		  || output == NULL) 
-		{
-		  puts ("Couldn't verify data.");
-		  return 1;
-		}
-
-	      puts ("Verifying integrity...");
 	      char checksum[65];
-	      if (m_buffer_sha256 (output, file_size, checksum) == 1)
+	      if (pkg->checksum != NULL
+		  && m_file_to_buffer ((char *)pkg_full_name, &file_size, &output) == 1
+		  && m_buffer_sha256 (output, file_size, checksum) == 1)
 		{
-		  char pkg_checksum[8 + strlen (pkg->location)];
-		  strcpy ((char *)&pkg_checksum, pkg->location);
-		  strcat ((char *)&pkg_checksum, ".sha256");
-
-		  dt_http_response* response;
-		  response = net_http_get ("http", pkg->domain, 
-					   (char *)&pkg_checksum, 80, NULL);
-
-		  if (response == NULL || response->status != 200)
-		    {
-		      puts ("Couldn't download checksum data.");
-		      return 1;
-		    }
-
-		  if (strcmp (response->body, (char *)&checksum))
+		  if (strcmp (pkg->checksum, checksum))
 		    {
 		      puts ("Checksums don't match!\nWhat you've downloaded is"
 			    " not the same as what the provider intended to"
 			    " send.\n");
 		      return 1;
 		    }
-
-		  dt_http_response_free (response);
 		  free (output);
 		}
 	      else
 		{
-		  puts ("Couldn't verify data.");
-		  return 1;
+		  printf ("Could not check whether the data you've downloaded "
+			  "is\nthe same as the publisher intended to send.\n"
+			  "\nDo you want to continue? [y/N]: ");
+
+		  char answer = getchar ();
+		  if (answer != 'y' && answer != 'Y')
+		    return 1;
 		}
 
 	      /* Extract it into the library. */
 	      puts ("Unpacking package...");
 
-	      char* repository_root = NULL;
-	      fs_create_repository_path (DATABASE_NAME, pkg->domain, &repository_root);
-
-	      if (packagers_zip_unpack ((char *)&pkg_full_name, repository_root))
+	      char* repo_root = NULL;
+	      if (!fs_create_repository_path (DATABASE_NAME, pkg->domain, &repo_root))
 		{
-		  unlink ((char *)&pkg_full_name);
+		  puts ("Couldn't create local directories.");
+		  free (repo_root);
+		  return 1;
+		}
+
+	      if (packagers_zip_unpack ((char *)pkg_full_name, repo_root))
+		{
+		  unlink ((char *)pkg_full_name);
 		  puts ("Done!");
 		}
 	      else
 		puts ("There was an error while unpacking the package.");
 
-	      free (repository_root);
+	      free (repo_root);
 	    }
 	  else
 	    puts ("There was an error while downloading the package.");
