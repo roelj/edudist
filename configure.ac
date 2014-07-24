@@ -13,29 +13,25 @@ AC_CONFIG_FILES([Makefile])
 
 case $host in
 *-linux*)
-AC_DEFINE(OS_LINUX, 1, [Linux])
 AC_SUBST(OS_LINUX)
-AM_CONDITIONAL(OS_LINUX, test "x$os" = xlinux)
-os="linux"
+AM_CONDITIONAL([OS_LINUX], [true])
 ;;
 *-mingw*)
-AC_DEFINE(OS_WINDOWS, 1, [Windows])
-AC_SUBST(OS_WINDOWS)
-os="windows"
+AC_SUBST(OS_LINUX)
+AM_CONDITIONAL([OS_LINUX], [false])
 ;;
 *-cygwin*)
-AC_DEFINE(OS_LINUX, 1, [Linux])
 AC_SUBST(OS_LINUX)
-os="linux"
+AM_CONDITIONAL([OS_LINUX], [true])
 ;;
 *)
 AC_MSG_ERROR([Moefel is not (yet) supported on $host.])
 esac
 
-AM_CONDITIONAL(OS_LINUX, test "x$os" = xlinux)
-AM_CONDITIONAL(OS_WINDOWS, test "x$os" = xwindows)
-
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([MOEFEL], [libcurl libzip sqlite3 openssl])
+PKG_CHECK_MODULES([CURL], [libcurl])
+PKG_CHECK_MODULES([LIBZIP], [libzip])
+PKG_CHECK_MODULES([SQLITE], [sqlite3])
+PKG_CHECK_MODULES([OPENSSL], [openssl])
 
 AC_OUTPUT
