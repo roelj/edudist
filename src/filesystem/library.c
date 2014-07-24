@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 int
 fs_create_library_path (const char* db, char** path)
@@ -30,9 +31,9 @@ fs_create_library_path (const char* db, char** path)
 
   #ifndef WIN32
   mode_t permissions = 0700; //S_IRWXU | S_IRWXG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-  if (mkdir (*path, permissions) == -1) return 0;
+  if (mkdir (*path, permissions) == -1 && errno != EEXIST) return 0;
   #else
-  if (mkdir (*path) == -1) return 0;
+  if (mkdir (*path) == -1 && errno != EEXIST) return 0;
   #endif
 
   return 1;
@@ -51,15 +52,16 @@ fs_create_repository_path (const char* db, const char* repo, char** path)
   if (*path == NULL) return 0;
 
   strcpy (*path, root);
-  if (root[strlen (root) - 1] == '/') strcat (*path, "/");
+  if (root[strlen (root) - 1] != '/') strcat (*path, "/");
   strcat (*path, repo);
 
   #ifndef WIN32
   mode_t permissions = 0700; //S_IRWXU | S_IRWXG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-  if (mkdir (root, permissions) == -1 && mkdir (*path, permissions) == -1) 
+  if (mkdir (root, permissions) == -1 && mkdir (*path, permissions) == -1 
+      && errno != EEXIST) 
     return 0;
   #else
-  if (mkdir (root) == -1 && mkdir (*path) == -1) return 0;
+  if (mkdir (root) == -1 && mkdir (*path) == -1 && errno != EEXIST) return 0;
   #endif
 
   return 1;

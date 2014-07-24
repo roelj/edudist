@@ -56,15 +56,6 @@ packagers_zip_unpack (const char* location, const char* destination)
       /* Only extract the content. */
       if (!strcmp (st.name, "metadata.txt")) continue;
 
-      char* contents = calloc (1, st.size + 1);
-      if (contents == NULL) return 0;
-
-      struct zip_file* f = zip_fopen (file, st.name, 0);
-      if (f == NULL) return 0;
-
-      if (zip_fread (f, contents, st.size) == -1) return 0;
-      zip_fclose (f);
-
       char* output_path = calloc (1, strlen (st.name) + strlen (destination) + 2);
       if (output_path == NULL) return 0;
 
@@ -75,9 +66,32 @@ packagers_zip_unpack (const char* location, const char* destination)
 
       output_path = strcat (output_path, st.name + 8);
 
-      FILE* output = fopen (output_path, "wb");
-      if (output == NULL) return 0;
+      if (output_path[strlen (output_path) - 1] == '/')
+	{
+          #ifndef WIN32
+	  mode_t permissions = 0700; //S_IRWXU | S_IRWXG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+	  if (mkdir (output_path, permissions) == -1 && errno != EEXIST) return 0;
+          #else
+	  if (mkdir (output_path) == -1 && errno != EEXIST) return 0;
+          #endif
+	  continue;
+	}
 
+      char* contents = calloc (1, st.size + 1);
+      if (contents == NULL) return 0;
+
+      struct zip_file* f = zip_fopen (file, st.name, 0);
+      if (f == NULL) return 0;
+
+      if (zip_fread (f, contents, st.size) == -1) return 0;
+      zip_fclose (f);
+
+      FILE* output = fopen (output_path, "wb");
+      if (output == NULL) 
+	{
+	  puts ("output == NULL");
+	  return 0;
+	}
       fwrite (contents, 1, st.size, output);
       fclose (output);
 
