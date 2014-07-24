@@ -38,6 +38,7 @@ typedef struct
   char* name;
   char* domain;
   char* created_at;
+  int is_enabled;
 
   /* Relationships. */
   dt_list* packages;
