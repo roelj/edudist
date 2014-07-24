@@ -22,6 +22,11 @@
 #include <string.h>
 #include <sqlite3.h>
 
+/* Use the Windows-only shlobj.h to get the user's home path. */
+#ifdef WIN32
+#include <shlobj.h>
+#endif
+
 bool
 db_configuration_set_defaults (const char* location)
 {
@@ -52,12 +57,23 @@ db_configuration_set_defaults (const char* location)
   /* Try to set '$HOME/Moefel/' as the default storage path. 
    * When $HOME is not available, fall back to the current directory. */
   char* storage_path = NULL;
+  #ifndef WIN32
   char* home = getenv ("HOME");
+  #else
+  char* home = NULL;
+  TCHAR szPath[MAX_PATH];
+  SHGetFolderPath (NULL, CSIDL_PERSONAL|CSIDL_FLAG_CREATE, NULL, 0, szPath);
+  home = (char *)&szPath;
+  #endif
   if (home != NULL)
     {
       storage_path = calloc (1, strlen (home) + 9);
       strcpy (storage_path, home);
+      #ifndef WIN32
       strcat (storage_path, "/Moefel/");
+      #else
+      strcat (storage_path, "\\Moefel\\");
+      #endif
       sqlite3_bind_text (result, 2, storage_path, -1, NULL);
     }
   else

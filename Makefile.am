@@ -26,7 +26,7 @@ moefel_SOURCES	 	= src/main.c \
 if OS_LINUX
 moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) -ldl -lpthread
 else
-moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS)
+moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) -lshell32
 endif
 
 docs:

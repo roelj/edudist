@@ -24,6 +24,14 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#ifndef WIN32
+const char DIRSEP = '/';
+const char* DIRSEP_str = "/";
+#else
+const char DIRSEP = '\\';
+const char* DIRSEP_str = "\\";
+#endif
+
 int
 fs_create_library_path (const char* db, char** path)
 {
@@ -52,7 +60,7 @@ fs_create_repository_path (const char* db, const char* repo, char** path)
   if (*path == NULL) return 0;
 
   strcpy (*path, root);
-  if (root[strlen (root) - 1] != '/') strcat (*path, "/");
+  if (root[strlen (root) - 1] != DIRSEP) strcat (*path, DIRSEP_str); 
   strcat (*path, repo);
 
   #ifndef WIN32
