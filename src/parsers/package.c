@@ -82,6 +82,11 @@ p_package_from_file (dt_package** package, const char* path)
 	pkg->location = calloc (1, strlen (location) + 1),
 	pkg->location = strncpy (pkg->location, location, strlen (location));
 
+      else if ((location = strstr ((char *)&line, "Checksum")) != NULL)
+	p_prepare (&location, 8),
+	pkg->checksum = calloc (1, strlen (location) + 1),
+	pkg->checksum = strncpy (pkg->checksum, location, strlen (location));
+
       else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
 	p_prepare (&location, 9),
 	pkg->created_at = calloc (1, strlen (location) + 1),
@@ -214,6 +219,11 @@ p_packages_from_buffer (dt_list** packages, const char* input)
 	p_prepare (&location, 8),
 	pkg->location = calloc (1, strlen (location) + 1),
 	pkg->location = strncpy (pkg->location, location, strlen (location));
+
+      else if ((location = strstr ((char *)&line, "Checksum")) != NULL)
+	p_prepare (&location, 8),
+	pkg->checksum = calloc (1, strlen (location) + 1),
+	pkg->checksum = strncpy (pkg->checksum, location, strlen (location));
 
       else if ((location = strstr ((char *)&line, "Timestamp")) != NULL)
 	p_prepare (&location, 9),

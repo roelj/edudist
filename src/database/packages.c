@@ -74,12 +74,17 @@ db_packages_handle_step (sqlite3_stmt* result)
     item->location = calloc (1, strlen (buffer) + 1),
     item->location = strcpy (item->location, buffer);
 
-  item->is_local = sqlite3_column_int (result, 7);
+  buffer = (char *)sqlite3_column_text (result, 7);
+  if (buffer != NULL)
+    item->checksum = calloc (1, strlen (buffer) + 1),
+    item->checksum = strcpy (item->checksum, buffer);
 
   buffer = (char *)sqlite3_column_text (result, 8);
   if (buffer != NULL)
     item->created_at = calloc (1, strlen (buffer) + 1),
     item->created_at = strcpy (item->created_at, buffer);  
+
+  item->is_local = sqlite3_column_int (result, 9);
 
   return item;
 }
@@ -246,11 +251,11 @@ db_packages_get_by_custom_filter (const char* location, const char* filter,
   status = sqlite3_open (location, &db);
   if (status != SQLITE_OK) return false;
 
-  size_t query_len = 223 + strlen (filter);
+  size_t query_len = 225 + strlen (filter);
   char* query = calloc (1, query_len + 1);
   strcpy (query,
     "SELECT p.id, r.domain, p.name, description, license, category, "
-    "location, is_local, p.created_at, p.is_local, r.is_enabled FROM "
+    "location, p.checksum, p.created_at, p.is_local, r.is_enabled FROM "
     "packages p INNER JOIN repositories r ON r.id = p.repository_id ");
   strcat (query, filter);
   strcat (query, " ORDER BY p.id DESC");
@@ -341,7 +346,7 @@ db_packages_get_by_name (const char* location, const char* name,
 
   status = sqlite3_prepare_v2 (db,
     "SELECT p.id, r.domain, p.name, description, license, category, location, "
-    "is_local, p.created_at, p.is_local, r.is_enabled FROM packages p "
+    "p.checksum, p.created_at, p.is_local, r.is_enabled FROM packages p "
     "INNER JOIN repositories r ON r.id = p.repository_id WHERE "
     "p.name=? AND r.domain LIKE ? ORDER BY p.id DESC", -1, &result, NULL);
 
