@@ -51,6 +51,15 @@ bool db_repositories_add (const char* location, dt_repository* repository);
  */
 bool db_repositories_disable (const char* location, const char* domain);
 
+/**
+ * Using this function, you can get a 'dt_list' of all 'dt_repositories' in 
+ * the database.
+ *
+ * @param location   The location of the database file.
+ * @param repos      A place to store a 'dt_list' of the repositories.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_repositories_get_all (const char* location, dt_list** repos);
 
 #ifdef __cplusplus
 }
