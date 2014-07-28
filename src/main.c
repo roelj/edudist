@@ -35,6 +35,7 @@
 #include "misc/datetime.h"
 #include "misc/strings.h"
 #include "filesystem/library.h"
+#include "gui/mainwindow.h"
 
 #define DATABASE_NAME "moefel.db"
 
@@ -45,16 +46,23 @@
 static void
 show_help ()
 {
-  puts ("\nThe most commonly used commands are:\n"
+  puts ("\nManage your repositories:\n"
 	"    enable     Add a repository.\n"
 	"    disable    Remove a repository.\n"
 	"    update     Update metadata of repositories.\n"
+	"\nManage your library:\n"
 	"    create     Create a new package.\n"
-	"    extract    Extract a local package.\n"
+	"    extract    Extract a (local) package.\n"
 	"    list       List packages.\n"
 	"    search     Search for packages.\n"
-	"    get        Retrieve a package.\n"
+	"    get        Download a package.\n"
+	"    publish    Upload a package to your repository.\n"
+//	"\nManage your archive:\n"
+//	"    archive    Create a local package.\n"
+//	"    extract    Extract a (local) package.\n"
+	"\nOther options:\n"
 //	"    set        Configure default behvior of this program.\n"
+	"    gui        Start the graphical user interface.\n"
 	"    version    Show versioning information.\n"
 	"    help       Show this message.\n\n"
 	"by passing --help after any of these commands, you'll\n"
@@ -224,8 +232,11 @@ main (int argc, char** argv)
 	  r = r->next;
 
 	  /* Skip disabled repositories. */
-	  if (repo->is_enabled == 0) continue;
-
+	  if (repo->is_enabled == 0) 
+	    {
+	      dt_repository_free (repo);
+	      continue;
+	    }
 	  printf ("Updating '%s'\n", repo->domain);
 
 	  /* Get the name and packages from the remote host. */
@@ -244,7 +255,7 @@ main (int argc, char** argv)
 
 	  /* Clean up and move on. */
 	  dt_http_response_free (response);
-	  dt_repository_free (r->data);
+	  dt_repository_free (repo);
 	}
 
       dt_list_free (repos);
@@ -326,6 +337,8 @@ main (int argc, char** argv)
 	      if (packagers_zip_unpack ((char *)pkg_full_name, repo_root))
 		{
 		  unlink ((char *)pkg_full_name);
+
+		  db_packages_set_local (DATABASE_NAME, pkg->name, 1);
 		  puts ("Done!");
 		}
 	      else
@@ -442,6 +455,13 @@ main (int argc, char** argv)
       else
 	printf ("Package '%s' couldn't be unpacked.\n", name);
     }
+
+  /* OPTION: gui
+   * ----------------------------------------------------------------------
+   * This option starts the graphical user interface.
+   */
+  else if (!strcmp (argv[1], "gui"))
+    gui_mainwindow_init (argc, argv);
 
   /* OPTION: version
    * ----------------------------------------------------------------------
