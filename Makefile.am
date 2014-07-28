@@ -1,5 +1,6 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
-AM_CFLAGS 		= $(curl_CFLAGS) $(libzip_CFLAGS) $(sqlite_CFLAGS) $(openssl_CFLAGS)
+AM_CFLAGS 		= $(curl_CFLAGS) $(libzip_CFLAGS) $(sqlite_CFLAGS) $(openssl_CFLAGS) \
+			  $(gtk_CFLAGS) $(glib_CFLAGS)
 bin_PROGRAMS 		= moefel
 moefel_SOURCES	 	= src/main.c \
 		  	  src/database/installation.h src/database/installation.c \
@@ -15,6 +16,8 @@ moefel_SOURCES	 	= src/main.c \
 			  src/datatypes/http_response.h \
 			  src/datatypes/file.h \
 		  	  src/filesystem/library.c src/filesystem/library.h \
+		  	  src/gui/mainwindow.c src/gui/mainwindow.h \
+		  	  src/gui/packages_tab.c src/gui/packages_tab.h \
 		  	  src/misc/datetime.c src/misc/datetime.h \
 		  	  src/misc/strings.c src/misc/strings.h \
 		  	  src/network/http.c src/network/http.h \
@@ -23,10 +26,13 @@ moefel_SOURCES	 	= src/main.c \
 		  	  src/parsers/repository.c src/parsers/repository.h \
 		  	  src/packagers/zip.c src/packagers/zip.h
 
+moefel_LDADD	        = $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) $(gtk_LIBS) \
+			  $(glib_LIBS)
 if OS_LINUX
-moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) -ldl -lpthread
+moefel_LDADD	       += -ldl -lpthread
 else
-moefel_LDADD 		= $(curl_LIBS) $(libzip_LIBS) $(sqlite_LIBS) $(openssl_LIBS) -lshell32
+moefel_LDADD	       += -lshell32
+moefel_LDFLAGS	        = -mwindows
 endif
 
 docs:

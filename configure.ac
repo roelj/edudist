@@ -33,5 +33,7 @@ PKG_CHECK_MODULES([curl], [libcurl])
 PKG_CHECK_MODULES([libzip], [libzip])
 PKG_CHECK_MODULES([sqlite], [sqlite3])
 PKG_CHECK_MODULES([openssl], [openssl])
+PKG_CHECK_MODULES([gtk], [gtk+-3.0])
+PKG_CHECK_MODULES([glib], [glib-2.0])
 
 AC_OUTPUT
