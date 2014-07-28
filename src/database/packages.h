@@ -103,11 +103,23 @@ bool db_packages_get_all (const char* location, dt_list** packages);
  *
  * @param location      The location of the database file.
  * @param name          The name of the package.
+ * @param repo          The repository to get the package from.
  * @param package       A pointer to a (empty) dt_package item.
  * @return 'true' when everything went fine, 'false' when something went wrong.
  */
 bool db_packages_get_by_name (const char* location, const char* name, 
 			      const char* repo, dt_package** package);
+
+/**
+ * Using this function, you can (un)mark a package as local.
+ *
+ * @param location      The location of the database file.
+ * @param name          The name of the package.
+ * @param is_active     1 to mark as locally available, 0 otherwise.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_packages_set_local (const char* location, const char* name, int state);
+
 
 #ifdef __cplusplus
 }

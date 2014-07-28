@@ -362,3 +362,34 @@ db_packages_get_by_name (const char* location, const char* name,
 
   return true;
 }
+
+bool
+db_packages_set_local (const char* location, const char* name, int state)
+{
+  sqlite3* db;
+  sqlite3_stmt* result;
+  int status;
+
+  status = sqlite3_open (location, &db);
+  if (status != SQLITE_OK) return false;
+
+  /* By using a prepared statement we avoid SQL injection and double memory
+   * allocation of the query string. */
+  status = sqlite3_prepare_v2 (db, 
+    "UPDATE packages SET is_local=? WHERE name=?", -1, &result, NULL);
+
+  if (status != SQLITE_OK) return false;
+
+  /* Bind the values to the parameters. Apparantly the first index is 1. */
+  sqlite3_bind_int (result, 1, state);
+  sqlite3_bind_text (result, 2, name, -1, NULL);
+
+  /* Execute the query. */
+  status = sqlite3_step (result);
+  if (status != SQLITE_DONE) return false;
+
+  sqlite3_finalize (result); 
+  sqlite3_close(db);
+
+  return true;
+}

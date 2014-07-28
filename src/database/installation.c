@@ -80,6 +80,12 @@ bool db_setup (const char* location)
 	  " key integer PRIMARY KEY,"
 	  " value varchar(255))", 0, 0, 0);
 
+      if (status == SQLITE_OK)
+	status = sqlite3_exec (db, 
+          "INSERT INTO repositories (name, domain, is_enabled) "
+	  "VALUES ('Archive', 'archive.local', 0)", 0, 0, 0);
+
+
       /* Commit the changes to the database. */
       if (status == SQLITE_OK)
 	sqlite3_exec (db, "END TRANSACTION", 0, 0, 0);
