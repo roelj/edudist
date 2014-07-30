@@ -83,7 +83,7 @@ bool db_setup (const char* location)
       if (status == SQLITE_OK)
 	status = sqlite3_exec (db, 
           "INSERT INTO repositories (name, domain, is_enabled) "
-	  "VALUES ('Archive', 'archive.local', 0)", 0, 0, 0);
+	  "VALUES ('Archive', '', 0)", 0, 0, 0);
 
 
       /* Commit the changes to the database. */

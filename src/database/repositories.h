@@ -61,6 +61,19 @@ bool db_repositories_disable (const char* location, const char* domain);
  */
 bool db_repositories_get_all (const char* location, dt_list** repos);
 
+/**
+ * With this function, a list of repositories can be gathered by searching
+ * for a keyword.
+ *
+ * @param location   The location of the database file.
+ * @param keyword    The keyword to look for.
+ * @param repos      A place to store a 'dt_list' of the repositories.
+ * @return 'true' when everything went fine, 'false' when something went wrong.
+ */
+bool db_repositories_get_by_keyword (const char* location, const char* keyword,
+				     dt_list** repos);
+
+
 #ifdef __cplusplus
 }
 #endif

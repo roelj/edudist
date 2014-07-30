@@ -20,6 +20,7 @@
 #include "repositories.h"
 #include "sqlite3.h"
 #include "packages.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -191,7 +192,7 @@ db_repositories_get_by_custom_filter (const char* location, const char* filter,
   size_t query_len = 83 + strlen (filter);
   char* query = calloc (1, query_len + 1);
   strcpy (query, "SELECT id, name, domain, created_at, is_enabled FROM repositories ");
-  strcat (query, filter);
+  if (strlen (filter) > 0) strcat (query, filter);
   strcat (query, " ORDER BY id DESC");
 
   status = sqlite3_prepare_v2 (db, query, -1, &result, NULL);
@@ -219,3 +220,28 @@ db_repositories_get_all (const char* location, dt_list** repos)
 {
   return db_repositories_get_by_custom_filter (location, "", repos);
 }
+
+
+/*----------------------------------------------------------------------------.
+ | DB_REPOSITORIES_GET_BY_KEYWORD                                             |
+ '----------------------------------------------------------------------------*/
+bool
+db_repositories_get_by_keyword (const char* location, const char* keyword,
+				dt_list** repos)
+{
+  bool return_val;
+  char* filter = calloc (1, 41 + strlen (keyword) * 2);
+  if (strlen (keyword) < 1)
+    {
+      free (filter);
+      return db_repositories_get_all (location, repos);
+    }
+
+  sprintf (filter, "WHERE domain LIKE \"%%%s%%\" OR name LIKE \"%%%s%%\"", 
+	   keyword, keyword);
+
+  return_val = db_repositories_get_by_custom_filter (location, filter, repos);
+  free (filter);
+  return return_val;
+}
+
