@@ -18,6 +18,8 @@ moefel_SOURCES	 	= src/main.c \
 		  	  src/filesystem/library.c src/filesystem/library.h \
 		  	  src/gui/mainwindow.c src/gui/mainwindow.h \
 		  	  src/gui/packages_tab.c src/gui/packages_tab.h \
+		  	  src/gui/repositories_tab.c src/gui/repositories_tab.h \
+			  src/high/command.c src/high/command.h \
 		  	  src/misc/datetime.c src/misc/datetime.h \
 		  	  src/misc/strings.c src/misc/strings.h \
 		  	  src/network/http.c src/network/http.h \
