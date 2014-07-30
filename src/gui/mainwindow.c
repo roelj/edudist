@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "packages_tab.h"
+#include "repositories_tab.h"
 
 void
 gui_mainwindow_init (int argc, char** argv)
@@ -12,7 +13,7 @@ gui_mainwindow_init (int argc, char** argv)
   GtkWidget* tabs = gtk_notebook_new ();
 
   GtkWidget* pkgs_tab = gui_packages_tab_create ();
-  GtkWidget* repos_tab = gtk_label_new ("Repositories tab..");
+  GtkWidget* repos_tab = gui_repositories_tab_create ();
 
   GtkWidget* tabs_lbl_pkgs = gtk_label_new ("Packages");
   GtkWidget* tabs_lbl_repos = gtk_label_new ("Repositories");
