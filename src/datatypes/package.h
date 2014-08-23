@@ -38,6 +38,7 @@ typedef struct
   int id;
   int repository_id;
   int is_local;
+  int version;
   char* name;
   char* domain;
   char* description;
