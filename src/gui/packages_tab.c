@@ -2,9 +2,14 @@
 #include "../database/packages.h"
 #include "../high/command.h"
 
-#define T_NAME  0
-#define T_REPO  1
-#define T_LOCAL 2
+enum {
+  T_NAME = 0,
+  T_REPO,
+  T_LICENSE,
+  T_LOCAL,
+  T_DATE
+} PACKAGE_MEMBERS;
+
 #define DATABASE_NAME "moefel.db"
 
 static GtkTreeStore* store;
@@ -21,7 +26,9 @@ gui_packages_populate_store (GtkTreeStore *store, dt_list* packages, bool cleanu
       gtk_tree_store_set (store, &i, 
 			  T_NAME, pkg->name,
 			  T_REPO, pkg->domain,
-			  T_LOCAL, pkg->is_local, -1);      
+			  T_LICENSE, pkg->license,
+			  T_LOCAL, pkg->is_local,
+			  T_DATE, pkg->created_at, -1);      
 
       if (cleanup) dt_package_free (pkg);
       temp = temp->next;
@@ -68,7 +75,7 @@ gui_packages_tab_create ()
   GtkWidget* top_bar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   GtkWidget* pkg_bar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
-  store = gtk_tree_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
+  store = gtk_tree_store_new (5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING);
 
   dt_list* dataset = NULL;
   if (db_packages_get_all (DATABASE_NAME, &dataset))
@@ -81,13 +88,22 @@ gui_packages_tab_create ()
   GtkTreeViewColumn* column;
 
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "text", T_NAME, NULL);
-  gtk_tree_view_append_column (GTK_TREE_VIEW (pkg_view), column);
   g_object_set (G_OBJECT (renderer), "width", 350, NULL);
   g_object_set (G_OBJECT (renderer), "height", 25, NULL);
 
+  column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "text", T_NAME, NULL);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (pkg_view), column);
+
+  renderer = gtk_cell_renderer_text_new ();
+  column = gtk_tree_view_column_new_with_attributes ("License", renderer, "text", T_LICENSE, NULL);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (pkg_view), column);
+
   renderer = gtk_cell_renderer_text_new ();
   column = gtk_tree_view_column_new_with_attributes ("Repository", renderer, "text", T_REPO, NULL);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (pkg_view), column);
+
+  renderer = gtk_cell_renderer_text_new ();
+  column = gtk_tree_view_column_new_with_attributes ("Published at", renderer, "text", T_DATE, NULL);
   gtk_tree_view_append_column (GTK_TREE_VIEW (pkg_view), column);
 
   renderer = gtk_cell_renderer_toggle_new ();
