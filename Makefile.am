@@ -37,6 +37,18 @@ moefel_LDADD	       += -lshell32
 moefel_LDFLAGS	        = -mwindows
 endif
 
+if ENABLE_GCOV_OPTION
+AM_CFLAGS	       += -fprofile-arcs -ftest-coverage
+endif
+
+GUILE_VERSION		= guile-1.8
+GUILE_CONFIG		= `pkg-config $(GUILE_VERSION) --cflags --libs`
+GUILE_SOURCE_FILES      = src/scm/cli.c src/scm/cli.h src/scm/init.c src/scm/init.h
+
+guile-lib:
+	$(CC) $(GUILE_CONFIG) -g -shared -o libguile-moefel.so -fPIC $(moefel_SOURCES) \
+	$(GUILE_SOURCE_FILES) $(AM_CFLAGS) $(moefel_LDADD) $(guile_LIBS) $(guile_CFLAGS)
+
 docs:
 	@cd doc/; texi2pdf moefel.texi
 
