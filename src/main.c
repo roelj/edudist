@@ -40,6 +40,10 @@
 
 #define DATABASE_NAME "moefel.db"
 
+#ifndef VERSION
+#define VERSION "undefined"
+#endif
+
 /*----------------------------------------------------------------------------.
  | SHOW_HELP                                                                  |
  | This function displays the possible command-line arguments.                |
