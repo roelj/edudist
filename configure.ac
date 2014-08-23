@@ -28,6 +28,12 @@ AM_CONDITIONAL([OS_LINUX], [true])
 AC_MSG_ERROR([Moefel is not (yet) supported on $host.])
 esac
 
+AC_SUBST(ENABLE_GCOV_OPTION)
+AC_ARG_ENABLE([gcov],
+AC_HELP_STRING([--enable-gcov],
+[enable GCOV suport @<:@default=no@:>@]),
+AM_CONDITIONAL([ENABLE_GCOV_OPTION], [true]), AM_CONDITIONAL([ENABLE_GCOV_OPTION], [false]))
+
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([curl], [libcurl])
 PKG_CHECK_MODULES([libzip], [libzip])
@@ -35,5 +41,6 @@ PKG_CHECK_MODULES([sqlite], [sqlite3])
 PKG_CHECK_MODULES([openssl], [openssl])
 PKG_CHECK_MODULES([gtk], [gtk+-3.0])
 PKG_CHECK_MODULES([glib], [glib-2.0])
+PKG_CHECK_MODULES([guile], [guile-1.8])
 
 AC_OUTPUT
