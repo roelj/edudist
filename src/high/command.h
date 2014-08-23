@@ -24,6 +24,7 @@
 #include "../network/http.h"
 #include "../database/repositories.h"
 #include "../misc/datetime.h"
+#include "../datatypes/package.h"
 
 #include <curl/curl.h>
 #include <string.h>
@@ -60,4 +61,17 @@ int h_command_enable (const char* domain);
  */
 int h_command_update ();
 
+/**
+ * This function gets a package from a remote repository and unpacks it
+ * in the user's library.
+ *
+ * @param package  The package name to get.
+ * @param repo     The repository to get it from.
+ *
+ * @return 1 when everything went fine, H_COMMAND_ERROR when something went
+ *         wrong.
+ */
+int h_command_get (const char* package, const char* repo);
+
 #endif//HIGH_COMMAND_H
+
